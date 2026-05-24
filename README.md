@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Trainer
 
-## Getting Started
+Web platform for image labeling and quiz tasks with tiered USDT platform rewards, internal wallet, and admin management.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Next.js (App Router) on Vercel
+- Neon Postgres via Vercel Postgres (`POSTGRES_URL`)
+- Vercel Blob for task images
+- Drizzle ORM + Auth.js (credentials)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Copy `.env.example` to `.env.local` and set `DATABASE_URL` from Vercel Postgres (or `POSTGRES_URL`).
+2. Install dependencies: `npm install`
+3. Fresh database (wipes **all** tables in `public`, reapplies schema, seeds):
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   npm run db:fresh
+   ```
 
-## Learn More
+   Use this when you have an old/conflicting schema. This uses `pg` over TCP and avoids the drizzle-kit “websocket” terminal error.
 
-To learn more about Next.js, take a look at the following resources:
+4. Or step by step: `npm run db:reset` → **`npm run db:migrate`** → `npm run db:seed`  
+   **Important:** `db:reset` deletes all tables — you must run `db:migrate` before `db:seed`.
+5. Run dev: `npm run dev`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Vercel deployment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Import repo and add **Vercel Postgres** + **Blob** storage.
+2. Set `DATABASE_URL`, `AUTH_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`.
+3. Deploy, then run `npm run db:push` and `npm run db:seed` against production DB (or use Vercel CLI).
 
-## Deploy on Vercel
+## Features
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Free training**: 3 questions, 1/day, 1 USDT bonus on completion
+- **Tasks**: Admin-created image label / multiple choice questions
+- **Tiers**: Daily limits and per-question USDT rewards; upgrade via wallet
+- **Wallet**: Internal ledger; deposit requests approved by admin
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Platform balances are not on-chain cryptocurrency until integrated later.
+
+## Default admin (after seed)
+
+Uses `ADMIN_EMAIL` / `ADMIN_PASSWORD` from env (see seed script).

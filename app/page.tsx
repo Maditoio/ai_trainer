@@ -1,65 +1,77 @@
-import Image from "next/image";
+import Link from "next/link";
+import { auth } from "@/lib/auth";
+import { TRAINING_REWARD_USDT } from "@/lib/constants";
+import { Button } from "@/components/ui/button";
+import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { Brain, Coins, Smartphone, Wallet } from "lucide-react";
 
-export default function Home() {
+export default async function HomePage() {
+  const session = await auth();
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="space-y-8 pb-8">
+      <section className="pt-4 text-center">
+        <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl gradient-bg text-white shadow-lg shadow-indigo-500/30">
+          <Brain className="h-9 w-9" />
+        </span>
+        <h1 className="mt-5 text-3xl font-bold text-slate-900">
+          Train AI.<br />
+          <span className="gradient-text">Earn USDT.</span>
+        </h1>
+        <p className="mx-auto mt-3 max-w-xs text-[var(--muted)]">
+          Mobile-first training tasks. {TRAINING_REWARD_USDT} USDT per correct
+          answer, once per day. Deposit & withdraw on Polygon.
+        </p>
+        <div className="mt-6 flex flex-col gap-3">
+          {session ? (
+            <Link href="/dashboard">
+              <Button className="w-full">Open app</Button>
+            </Link>
+          ) : (
+            <>
+              <Link href="/register">
+                <Button className="w-full">Get started free</Button>
+              </Link>
+              <Link href="/login">
+                <Button variant="outline" className="w-full">
+                  Sign in
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </section>
+
+      <div className="grid gap-3">
+        <Card className="flex gap-4">
+          <Coins className="h-8 w-8 shrink-0 text-amber-500" />
+          <div>
+            <CardTitle className="text-base">Daily earnings</CardTitle>
+            <CardDescription>
+              {TRAINING_REWARD_USDT} USDT for each training question you complete
+              today.
+            </CardDescription>
+          </div>
+        </Card>
+        <Card className="flex gap-4">
+          <Wallet className="h-8 w-8 shrink-0 text-indigo-500" />
+          <div>
+            <CardTitle className="text-base">USDT on Polygon</CardTitle>
+            <CardDescription>
+              Deposit via NOWPayments. Withdraw to your wallet when you are ready.
+            </CardDescription>
+          </div>
+        </Card>
+        <Card className="flex gap-4">
+          <Smartphone className="h-8 w-8 shrink-0 text-cyan-500" />
+          <div>
+            <CardTitle className="text-base">Built for mobile</CardTitle>
+            <CardDescription>
+              Quick tasks, clear progress, and a wallet that fits in your pocket.
+            </CardDescription>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }
