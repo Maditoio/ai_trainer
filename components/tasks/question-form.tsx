@@ -21,9 +21,19 @@ export function QuestionForm({ question, mode }: Props) {
   const [correctedOptionId, setCorrectedOptionId] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [progressText, setProgressText] = useState<string | null>(null);
+  const [progressStep, setProgressStep] = useState(0);
   const [isPending, setIsPending] = useState(false);
   const options = getQuestionOptions(question);
   const aiSuggestion = mode === "task" ? getAiSuggestion(question.id, options) : null;
+  const correctionOptions =
+    aiSuggestion && options.length > 1
+      ? options.filter((option) => option.id !== aiSuggestion.id)
+      : options;
+  const canTrainAi =
+    !!aiSuggestion &&
+    !!aiVerdict &&
+    (aiVerdict === "correct" || !!correctedOptionId) &&
+    !isPending;
 
   function optionToAnswer(option: McqOption) {
     return question.type === "multiple_choice" ? option.id : option.label;
@@ -37,7 +47,8 @@ export function QuestionForm({ question, mode }: Props) {
       "Training completed",
     ];
 
-    for (const step of steps) {
+    for (const [index, step] of steps.entries()) {
+      setProgressStep(index + 1);
       setProgressText(step);
       await new Promise((resolve) => setTimeout(resolve, 7500));
     }
@@ -48,6 +59,7 @@ export function QuestionForm({ question, mode }: Props) {
     setIsPending(true);
     setMessage(null);
     setProgressText("Submitting answer");
+    setProgressStep(0);
 
     try {
       const result =
@@ -116,6 +128,7 @@ export function QuestionForm({ question, mode }: Props) {
     setIsPending(true);
     setMessage(null);
     setProgressText("Submitting training signal");
+    setProgressStep(0);
 
     try {
       const result = await submitTaskAnswer(question.id, payload);
@@ -191,7 +204,12 @@ export function QuestionForm({ question, mode }: Props) {
           <div className="mt-4 grid grid-cols-2 gap-3">
             <Button
               type="button"
-              variant={aiVerdict === "correct" ? "default" : "outline"}
+              variant="outline"
+              className={
+                aiVerdict === "correct"
+                  ? "border-emerald-500 bg-emerald-500 text-white hover:bg-emerald-600"
+                  : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+              }
               disabled={isPending}
               onClick={() => {
                 setAiVerdict("correct");
@@ -202,7 +220,12 @@ export function QuestionForm({ question, mode }: Props) {
             </Button>
             <Button
               type="button"
-              variant={aiVerdict === "wrong" ? "destructive" : "outline"}
+              variant="outline"
+              className={
+                aiVerdict === "wrong"
+                  ? "border-red-500 bg-red-500 text-white hover:bg-red-600"
+                  : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+              }
               disabled={isPending}
               onClick={() => setAiVerdict("wrong")}
             >
@@ -212,43 +235,47 @@ export function QuestionForm({ question, mode }: Props) {
         )}
 
         {aiVerdict === "wrong" && (
-          <div className="mt-4 space-y-2">
-            <p className="text-sm font-semibold text-slate-700">
-              Select the correct answer
+          <div className="mt-4 rounded-2xl border border-red-100 bg-red-50 p-4">
+            <p className="text-sm font-bold text-red-900">
+              Select the correct answer before training the AI
             </p>
-            {options.map((opt) => (
-              <label
-                key={opt.id}
-                className="flex cursor-pointer items-center gap-2 rounded-md border border-foreground/10 p-3 hover:bg-foreground/5"
-              >
-                <input
-                  type="radio"
-                  name="correctedAnswer"
-                  value={opt.id}
+            <div className="mt-3 grid gap-2">
+              {correctionOptions.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
                   disabled={isPending}
-                  checked={correctedOptionId === opt.id}
-                  onChange={() => setCorrectedOptionId(opt.id)}
-                />
-                <span>{opt.label}</span>
-              </label>
-            ))}
+                  onClick={() => setCorrectedOptionId(opt.id)}
+                  className={`min-h-11 rounded-xl border-2 px-4 py-2 text-left text-sm font-semibold transition ${
+                    correctedOptionId === opt.id
+                      ? "border-indigo-500 bg-white text-indigo-700 shadow-sm"
+                      : "border-white bg-white/70 text-slate-700 hover:border-indigo-200 hover:bg-white"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {correctionOptions.length === 0 && (
+              <p className="mt-2 text-sm text-red-800">
+                This task has no alternative choices configured. Ask an admin to
+                add answer options.
+              </p>
+            )}
           </div>
         )}
 
-        <Button
-          className="mt-4 w-full"
-          onClick={onTrainAi}
-          disabled={
-            !aiSuggestion ||
-            !aiVerdict ||
-            (aiVerdict === "wrong" && !correctedOptionId) ||
-            isPending
-          }
-        >
-          {isPending ? "Training AI..." : "Train AI"}
-        </Button>
+        {(aiVerdict === "correct" || correctedOptionId || isPending) && (
+          <Button
+            className="mt-4 w-full"
+            onClick={onTrainAi}
+            disabled={!canTrainAi}
+          >
+            {isPending ? "Training AI..." : "Train AI"}
+          </Button>
+        )}
         {progressText && (
-          <ProgressMessage progressText={progressText} />
+          <ProgressMessage progressText={progressText} progressStep={progressStep} />
         )}
         {message && <p className="mt-3 text-sm font-medium text-slate-700">{message}</p>}
       </Card>
@@ -306,7 +333,7 @@ export function QuestionForm({ question, mode }: Props) {
         {isPending ? "Submitting…" : "Submit answer"}
       </Button>
       {progressText && (
-        <ProgressMessage progressText={progressText} />
+        <ProgressMessage progressText={progressText} progressStep={progressStep} />
       )}
       {message && <p className="mt-3 text-sm font-medium text-slate-700">{message}</p>}
     </Card>
@@ -322,13 +349,32 @@ function getAiSuggestion(questionId: string, options: McqOption[]) {
   return options[hash % options.length];
 }
 
-function ProgressMessage({ progressText }: { progressText: string }) {
+function ProgressMessage({
+  progressText,
+  progressStep,
+}: {
+  progressText: string;
+  progressStep: number;
+}) {
+  const progressPercent = progressStep > 0 ? Math.min(progressStep * 25, 100) : 10;
+
   return (
     <div className="mt-4 rounded-xl bg-indigo-50 p-4 text-sm font-semibold text-indigo-800">
-      {progressText}…
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-indigo-100">
-        <div className="h-full animate-pulse rounded-full bg-indigo-500" />
+      <div className="flex items-center justify-between gap-3">
+        <span>{progressText}…</span>
+        <span className="text-xs text-indigo-500">
+          {progressStep > 0 ? `${progressStep}/4` : "Starting"}
+        </span>
       </div>
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-indigo-100">
+        <div
+          className="h-full rounded-full bg-indigo-500 transition-all duration-700"
+          style={{ width: `${progressPercent}%` }}
+        />
+      </div>
+      <p className="mt-2 text-xs font-medium text-indigo-600">
+        Please wait while ModelMind records and trains this AI feedback.
+      </p>
     </div>
   );
 }
