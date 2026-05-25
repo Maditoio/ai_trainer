@@ -56,20 +56,17 @@ export async function registerAction(formData: FormData): Promise<void> {
   await signIn("credentials", {
     email,
     password,
-    redirectTo: user.role === "admin" ? "/admin" : "/dashboard",
+    redirectTo: "/dashboard",
   });
 }
 
 export async function loginAction(formData: FormData): Promise<void> {
   const email = String(formData.get("email") ?? "").toLowerCase();
   const password = String(formData.get("password") ?? "");
-  const user = await db.query.users.findFirst({
-    where: eq(users.email, email),
-  });
 
   await signIn("credentials", {
     email,
     password,
-    redirectTo: user?.role === "admin" ? "/admin" : "/dashboard",
+    redirectTo: "/dashboard",
   });
 }
