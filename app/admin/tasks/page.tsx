@@ -84,6 +84,7 @@ export default async function AdminTasksPage() {
                     </div>
                     <CardDescription className="mt-1">
                       {task.type === "image_label" ? "Image labeling" : "Quiz"} ·{" "}
+                      {task.category ? `${task.category} · ` : ""}
                       {count} question{count === 1 ? "" : "s"}
                       {task.description ? ` · ${task.description}` : ""}
                     </CardDescription>

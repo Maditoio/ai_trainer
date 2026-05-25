@@ -34,6 +34,7 @@ export async function upsertTask(
 
   const title = String(formData.get("title") ?? "");
   const description = String(formData.get("description") ?? "") || null;
+  const category = String(formData.get("category") ?? "").trim() || null;
   const type = String(formData.get("type") ?? "multiple_choice") as
     | "image_label"
     | "multiple_choice";
@@ -48,6 +49,7 @@ export async function upsertTask(
   const values = {
     title,
     description,
+    category,
     type,
     status,
     minTierId: minTierId || null,

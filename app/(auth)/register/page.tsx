@@ -6,7 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Brain } from "lucide-react";
 
-export default function RegisterPage() {
+export default async function RegisterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ ref?: string }>;
+}) {
+  const { ref } = await searchParams;
+
   return (
     <div className="mx-auto max-w-sm space-y-6 pt-4">
       <div className="text-center">
@@ -15,7 +21,7 @@ export default function RegisterPage() {
         </span>
         <h1 className="mt-4 text-2xl font-bold text-slate-900">Join AI Trainer</h1>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Earn USDT per training question based on your package
+          Start helping AI learn from clear human feedback
         </p>
       </div>
 
@@ -40,6 +46,22 @@ export default function RegisterPage() {
               className="mt-1"
             />
           </div>
+          {ref && (
+            <div>
+              <Label htmlFor="referralCode">Referral ID</Label>
+              <Input
+                id="referralCode"
+                name="referralCode"
+                value={ref}
+                readOnly
+                className="mt-1 bg-slate-100 text-slate-600"
+              />
+              <p className="mt-1 text-xs text-[var(--muted)]">
+                This referral was filled from your invite link and cannot be
+                changed.
+              </p>
+            </div>
+          )}
           <Button type="submit" className="w-full">
             Create account
           </Button>

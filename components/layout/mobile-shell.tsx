@@ -31,7 +31,10 @@ export async function MobileShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-white/90 px-4 py-3 backdrop-blur-md">
         <div className="mx-auto flex max-w-lg items-center justify-between">
-          <Link href={isAdmin ? "/admin" : "/dashboard"} className="flex items-center gap-2">
+          <Link
+            href={session?.user ? (isAdmin ? "/admin" : "/dashboard") : "/"}
+            className="flex items-center gap-2"
+          >
             <span className="flex h-9 w-9 items-center justify-center rounded-xl gradient-bg text-white">
               <Brain className="h-5 w-5" />
             </span>
@@ -48,10 +51,11 @@ export async function MobileShell({ children }: { children: React.ReactNode }) {
             >
               <button
                 type="submit"
-                className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50"
                 aria-label="Sign out"
               >
-                <LogOut className="h-5 w-5" />
+                <LogOut className="h-4 w-4" />
+                <span>Sign out</span>
               </button>
             </form>
           )}

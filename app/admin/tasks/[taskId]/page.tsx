@@ -114,6 +114,16 @@ export default async function AdminTaskDetailPage({
               />
             </div>
             <div>
+              <Label htmlFor="category">Category</Label>
+              <Input
+                id="category"
+                name="category"
+                defaultValue={task.category ?? ""}
+                placeholder="Animals, plants, vehicles..."
+                className="mt-1"
+              />
+            </div>
+            <div>
               <Label htmlFor="type">Question type</Label>
               <Select
                 id="type"

@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { tiers, users } from "@/lib/db/schema";
 import { getUserTier } from "@/lib/quota";
+import { getTierReferralEligibility } from "@/lib/referrals";
 import { applyLedgerEntry, getWalletBalance } from "@/lib/wallet/ledger";
 
 export async function getTiersForUpgrade() {
@@ -17,8 +18,14 @@ export async function getTiersForUpgrade() {
     orderBy: [asc(tiers.sortOrder)],
   });
   const balance = await getWalletBalance(session.user.id);
+  const referralEligibility = await Promise.all(
+    allTiers.map(async (tier) => ({
+      tierId: tier.id,
+      ...(await getTierReferralEligibility(session.user.id, tier.id)),
+    })),
+  );
 
-  return { currentTier, allTiers, balance };
+  return { currentTier, allTiers, balance, referralEligibility };
 }
 
 export async function upgradeTier(tierId: string): Promise<void> {
@@ -30,6 +37,16 @@ export async function upgradeTier(tierId: string): Promise<void> {
     where: eq(tiers.id, tierId),
   });
   if (!targetTier) throw new Error("Tier not found");
+
+  const referralEligibility = await getTierReferralEligibility(
+    userId,
+    targetTier.id,
+  );
+  if (!referralEligibility.eligible) {
+    throw new Error(
+      `You need ${referralEligibility.requiredCount} qualified referrals to upgrade to ${targetTier.name}. You currently have ${referralEligibility.qualifiedCount}.`,
+    );
+  }
 
   const currentTier = await getUserTier(userId);
   if (currentTier?.id === targetTier.id) {
@@ -83,6 +100,11 @@ export async function upsertTier(
   const usdtPerQuestion = String(formData.get("usdtPerQuestion") ?? "0");
   const upgradePriceUsdt = String(formData.get("upgradePriceUsdt") ?? "0");
   const sortOrder = Number(formData.get("sortOrder") ?? 0);
+  const requiredReferralCount = Number(
+    formData.get("requiredReferralCount") ?? 0,
+  );
+  const requiredReferralTierId =
+    String(formData.get("requiredReferralTierId") ?? "") || null;
   const isDefault = formData.get("isDefault") === "on";
 
   if (!name || Number.isNaN(dailyQuestionLimit)) {
@@ -99,6 +121,10 @@ export async function upsertTier(
     usdtPerQuestion,
     upgradePriceUsdt,
     sortOrder,
+    requiredReferralCount: Number.isNaN(requiredReferralCount)
+      ? 0
+      : requiredReferralCount,
+    requiredReferralTierId,
     isDefault,
   };
 

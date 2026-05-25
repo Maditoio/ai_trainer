@@ -2,8 +2,11 @@ import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { tasks, users } from "@/lib/db/schema";
+import { users } from "@/lib/db/schema";
 import { canAnswerTaskToday } from "@/lib/quota";
+import { buildReferralLink, ensureReferralCode, getReferralStats } from "@/lib/referrals";
+import { getAccuracyStats } from "@/lib/stats/accuracy";
+import { getWeeklyRandomTaskSuggestions } from "@/lib/tasks/suggestions";
 import { getWalletBalance } from "@/lib/wallet/ledger";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -17,12 +20,14 @@ export default async function DashboardPage() {
   const userId = session.user.id;
   const quota = await canAnswerTaskToday(userId);
   const balance = await getWalletBalance(userId);
-  const activeTasks = await db.query.tasks.findMany({
-    where: eq(tasks.status, "active"),
-  });
+  const activeTasks = await getWeeklyRandomTaskSuggestions(userId);
+  const accuracy = await getAccuracyStats(userId);
   const user = await db.query.users.findFirst({
     where: eq(users.id, userId),
   });
+  const referralCode = await ensureReferralCode(userId, session.user.email ?? user?.email ?? "trainer");
+  const referralLink = buildReferralLink(referralCode);
+  const referralStats = await getReferralStats(userId);
 
   const canTrainToday = quota.allowed;
   const rewardUsdt = quota.rewardUsdt ?? "0";
@@ -80,6 +85,22 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
+      <Card>
+        <CardTitle>Accuracy score</CardTitle>
+        <CardDescription className="mt-1">
+          {accuracy.correct} correct · {accuracy.wrong} wrong
+        </CardDescription>
+        <div className="mt-3 flex items-end gap-3">
+          <p className="text-4xl font-bold text-indigo-700">
+            {accuracy.accuracy}%
+          </p>
+          <p className="pb-1 text-sm text-[var(--muted)]">
+            based on {accuracy.total} answered question
+            {accuracy.total === 1 ? "" : "s"}
+          </p>
+        </div>
+      </Card>
+
       {!user?.freeTrainingCompletedAt && (
         <Card className="border-violet-200 bg-violet-50">
           <CardTitle className="text-violet-900">Free training</CardTitle>
@@ -91,6 +112,20 @@ export default async function DashboardPage() {
           </Link>
         </Card>
       )}
+
+      <Card className="border-cyan-100 bg-cyan-50">
+        <CardTitle className="text-cyan-950">Invite friends</CardTitle>
+        <CardDescription className="mt-1 text-cyan-800">
+          Share your referral link. Tier upgrades can require referrals who are
+          already using specific packages.
+        </CardDescription>
+        <p className="mt-3 break-all rounded-xl bg-white p-3 font-mono text-xs text-slate-700">
+          {referralLink}
+        </p>
+        <p className="mt-2 text-sm font-medium text-cyan-900">
+          {referralStats.total} referral{referralStats.total === 1 ? "" : "s"} joined
+        </p>
+      </Card>
 
       <section>
         <div className="mb-3 flex items-center justify-between">
@@ -121,6 +156,11 @@ export default async function DashboardPage() {
                       <p className="text-xs text-[var(--muted)] line-clamp-1">
                         {task.description ?? "Earn USDT for correct answers"}
                       </p>
+                      {task.category && (
+                        <p className="text-xs font-medium text-indigo-600">
+                          {task.category}
+                        </p>
+                      )}
                     </div>
                     <Badge>
                       {canTrainToday ? `+${rewardUsdt}` : "Locked"}

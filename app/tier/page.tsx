@@ -20,6 +20,11 @@ export default async function TierPage() {
           const isCurrent = data.currentTier?.id === tier.id;
           const price = parseFloat(tier.upgradePriceUsdt);
           const canAfford = parseFloat(data.balance) >= price;
+          const referralEligibility = data.referralEligibility.find(
+            (item) => item.tierId === tier.id,
+          );
+          const hasReferrals = referralEligibility?.eligible ?? true;
+          const canUpgrade = (price === 0 || canAfford) && hasReferrals;
 
           return (
             <li key={tier.id}>
@@ -29,6 +34,15 @@ export default async function TierPage() {
                   <p>{tier.dailyQuestionLimit} questions / day</p>
                   <p>{tier.usdtPerQuestion} USDT per correct answer</p>
                   <p>Upgrade: {tier.upgradePriceUsdt} USDT</p>
+                  {tier.requiredReferralCount > 0 && (
+                    <p>
+                      Referrals: {referralEligibility?.qualifiedCount ?? 0}/
+                      {tier.requiredReferralCount}
+                      {referralEligibility?.requiredTier
+                        ? ` using ${referralEligibility.requiredTier.name} or higher`
+                        : " joined"}
+                    </p>
+                  )}
                 </CardDescription>
                 {isCurrent ? (
                   <p className="mt-4 text-sm font-medium">Current tier</p>
@@ -42,9 +56,13 @@ export default async function TierPage() {
                   >
                     <Button
                       type="submit"
-                      disabled={price > 0 && !canAfford}
+                      disabled={!canUpgrade}
                     >
-                      {price === 0 ? "Switch" : "Upgrade"}
+                      {!hasReferrals
+                        ? "Need referrals"
+                        : price === 0
+                          ? "Switch"
+                          : "Upgrade"}
                     </Button>
                   </form>
                 )}

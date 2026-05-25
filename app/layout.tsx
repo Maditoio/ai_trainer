@@ -10,7 +10,7 @@ const geist = Geist({
 
 export const metadata: Metadata = {
   title: "AI Trainer",
-  description: "Train AI, earn USDT — mobile-first",
+  description: "Mobile-first AI training tasks powered by human feedback",
 };
 
 export const viewport: Viewport = {

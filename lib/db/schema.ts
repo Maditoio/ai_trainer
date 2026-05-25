@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  AnyPgColumn,
   boolean,
   date,
   integer,
@@ -65,6 +66,10 @@ export const tiers = pgTable("tiers", {
     .notNull()
     .default("0"),
   sortOrder: integer("sort_order").notNull().default(0),
+  requiredReferralCount: integer("required_referral_count").notNull().default(0),
+  requiredReferralTierId: uuid("required_referral_tier_id").references(
+    (): AnyPgColumn => tiers.id,
+  ),
   isDefault: boolean("is_default").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
@@ -78,6 +83,10 @@ export const users = pgTable("users", {
   name: text("name"),
   role: userRoleEnum("role").notNull().default("user"),
   currentTierId: uuid("current_tier_id").references(() => tiers.id),
+  referralCode: text("referral_code").unique(),
+  referredByUserId: uuid("referred_by_user_id").references(
+    (): AnyPgColumn => users.id,
+  ),
   freeTrainingCompletedAt: timestamp("free_training_completed_at", {
     withTimezone: true,
   }),
@@ -132,6 +141,7 @@ export const tasks = pgTable("tasks", {
   id: uuid("id").primaryKey().defaultRandom(),
   title: text("title").notNull(),
   description: text("description"),
+  category: text("category"),
   type: taskTypeEnum("type").notNull(),
   status: taskStatusEnum("status").notNull().default("draft"),
   minTierId: uuid("min_tier_id").references(() => tiers.id),
@@ -242,11 +252,17 @@ export const freeTrainingProgress = pgTable("free_training_progress", {
   lastAnsweredDate: date("last_answered_date"),
 });
 
-export const usersRelations = relations(users, ({ one }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   currentTier: one(tiers, {
     fields: [users.currentTierId],
     references: [tiers.id],
   }),
+  referrer: one(users, {
+    fields: [users.referredByUserId],
+    references: [users.id],
+    relationName: "referrals",
+  }),
+  referrals: many(users, { relationName: "referrals" }),
 }));
 
 export const tiersRelations = relations(tiers, ({ many }) => ({

@@ -1,16 +1,11 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
-import { getUserTier } from "@/lib/quota";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { Brain, Coins, Smartphone, Wallet } from "lucide-react";
+import { Brain, Image, ListChecks, Smartphone, Sparkles } from "lucide-react";
 
 export default async function HomePage() {
   const session = await auth();
-  const tier = session?.user?.id ? await getUserTier(session.user.id) : null;
-  const rewardText = tier
-    ? `${tier.usdtPerQuestion} USDT per question on ${tier.name}`
-    : "tier-based USDT rewards";
 
   return (
     <div className="space-y-8 pb-8">
@@ -19,51 +14,50 @@ export default async function HomePage() {
           <Brain className="h-9 w-9" />
         </span>
         <h1 className="mt-5 text-3xl font-bold text-slate-900">
-          Train AI.<br />
-          <span className="gradient-text">Earn USDT.</span>
+          Help AI learn.<br />
+          <span className="gradient-text">One task at a time.</span>
         </h1>
         <p className="mx-auto mt-3 max-w-xs text-[var(--muted)]">
-          Mobile-first training tasks with {rewardText}. Deposit & withdraw on
-          Polygon.
+          AI Trainer turns simple human judgment into better machine learning.
+          Review images, answer questions, and help build cleaner training data.
         </p>
         <div className="mt-6 flex flex-col gap-3">
-          {session ? (
+          <Link href="/register">
+            <Button className="w-full">Create account</Button>
+          </Link>
+          <Link href="/login">
+            <Button variant="outline" className="w-full">
+              Sign in
+            </Button>
+          </Link>
+          {session?.user && (
             <Link href="/dashboard">
-              <Button className="w-full">Open app</Button>
+              <Button variant="ghost" className="w-full">
+                Continue to dashboard
+              </Button>
             </Link>
-          ) : (
-            <>
-              <Link href="/register">
-                <Button className="w-full">Get started free</Button>
-              </Link>
-              <Link href="/login">
-                <Button variant="outline" className="w-full">
-                  Sign in
-                </Button>
-              </Link>
-            </>
           )}
         </div>
       </section>
 
       <div className="grid gap-3">
         <Card className="flex gap-4">
-          <Coins className="h-8 w-8 shrink-0 text-amber-500" />
+          <Image className="h-8 w-8 shrink-0 text-indigo-500" />
           <div>
-            <CardTitle className="text-base">Daily earnings</CardTitle>
+            <CardTitle className="text-base">Image understanding</CardTitle>
             <CardDescription>
-              {tier
-                ? `${tier.usdtPerQuestion} USDT for each training question on your ${tier.name} package.`
-                : "Your package controls the exact USDT price per training question."}
+              Identify objects, labels, and patterns so AI models learn from
+              accurate examples.
             </CardDescription>
           </div>
         </Card>
         <Card className="flex gap-4">
-          <Wallet className="h-8 w-8 shrink-0 text-indigo-500" />
+          <ListChecks className="h-8 w-8 shrink-0 text-emerald-500" />
           <div>
-            <CardTitle className="text-base">USDT on Polygon</CardTitle>
+            <CardTitle className="text-base">Question answering</CardTitle>
             <CardDescription>
-              Deposit via NOWPayments. Withdraw to your wallet when you are ready.
+              Complete quick multiple-choice tasks that help validate AI
+              reasoning and classification.
             </CardDescription>
           </div>
         </Card>
@@ -72,7 +66,18 @@ export default async function HomePage() {
           <div>
             <CardTitle className="text-base">Built for mobile</CardTitle>
             <CardDescription>
-              Quick tasks, clear progress, and a wallet that fits in your pocket.
+              Short, focused tasks with clear progress, designed for quick
+              training sessions on your phone.
+            </CardDescription>
+          </div>
+        </Card>
+        <Card className="flex gap-4">
+          <Sparkles className="h-8 w-8 shrink-0 text-amber-500" />
+          <div>
+            <CardTitle className="text-base">Why it matters</CardTitle>
+            <CardDescription>
+              Better human feedback creates cleaner datasets and more useful AI
+              systems.
             </CardDescription>
           </div>
         </Card>

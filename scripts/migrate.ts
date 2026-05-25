@@ -19,6 +19,15 @@ async function migrate() {
     const { rows: cryptoRows } = await client.query<{ regclass: string | null }>(
       `SELECT to_regclass('public.crypto_deposits') AS regclass`,
     );
+    const { rows: referralRows } = await client.query<{ exists: boolean }>(
+      `SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'users'
+          AND column_name = 'referral_code'
+      ) AS exists`,
+    );
 
     if (!rows[0]?.regclass) {
       console.log("Applying all migrations from drizzle/*.sql …");
@@ -29,6 +38,11 @@ async function migrate() {
     if (!cryptoRows[0]?.regclass) {
       console.log("Applying drizzle/0001_crypto_withdrawals.sql …");
       await applySqlMigrations(client, (f) => f.includes("0001"));
+    }
+
+    if (!referralRows[0]?.exists) {
+      console.log("Applying drizzle/0002_categories_referrals.sql …");
+      await applySqlMigrations(client, (f) => f.includes("0002"));
       return;
     }
 

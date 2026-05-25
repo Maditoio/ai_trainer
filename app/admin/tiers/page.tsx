@@ -39,6 +39,24 @@ export default async function AdminTiersPage() {
             <Label>Sort order</Label>
             <Input name="sortOrder" type="number" defaultValue="0" />
           </div>
+          <div>
+            <Label>Required referrals</Label>
+            <Input name="requiredReferralCount" type="number" min="0" defaultValue="0" />
+          </div>
+          <div>
+            <Label>Referral minimum tier</Label>
+            <select
+              name="requiredReferralTierId"
+              className="min-h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-base"
+            >
+              <option value="">Any tier</option>
+              {allTiers.map((tier) => (
+                <option key={tier.id} value={tier.id}>
+                  {tier.name} or higher
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="flex items-end gap-2">
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" name="isDefault" /> Default tier
@@ -91,6 +109,30 @@ export default async function AdminTiersPage() {
                 <div>
                   <Label>Sort order</Label>
                   <Input name="sortOrder" type="number" defaultValue={tier.sortOrder} />
+                </div>
+                <div>
+                  <Label>Required referrals</Label>
+                  <Input
+                    name="requiredReferralCount"
+                    type="number"
+                    min="0"
+                    defaultValue={tier.requiredReferralCount}
+                  />
+                </div>
+                <div>
+                  <Label>Referral minimum tier</Label>
+                  <select
+                    name="requiredReferralTierId"
+                    defaultValue={tier.requiredReferralTierId ?? ""}
+                    className="min-h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-base"
+                  >
+                    <option value="">Any tier</option>
+                    {allTiers.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.name} or higher
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="flex items-end gap-2">
                   <label className="flex items-center gap-2 text-sm">

@@ -1,6 +1,7 @@
 import { getTaskEarningsHistory } from "@/lib/actions/history";
 import { auth } from "@/lib/auth";
 import { getUserTier } from "@/lib/quota";
+import { getAccuracyStats } from "@/lib/stats/accuracy";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, XCircle } from "lucide-react";
@@ -9,6 +10,9 @@ export default async function HistoryPage() {
   const session = await auth();
   const history = await getTaskEarningsHistory();
   const tier = session?.user?.id ? await getUserTier(session.user.id) : null;
+  const accuracy = session?.user?.id
+    ? await getAccuracyStats(session.user.id)
+    : { correct: 0, wrong: 0, total: 0, accuracy: 0 };
 
   const totalEarned = history
     .filter((h) => h.status === "correct")
@@ -29,6 +33,16 @@ export default async function HistoryPage() {
       <Card className="bg-indigo-50 border-indigo-100">
         <CardDescription>Total earned from training</CardDescription>
         <p className="text-3xl font-bold text-indigo-900">{totalEarned} USDT</p>
+      </Card>
+
+      <Card>
+        <CardTitle>Accuracy score</CardTitle>
+        <CardDescription className="mt-1">
+          {accuracy.correct} correct · {accuracy.wrong} wrong
+        </CardDescription>
+        <p className="mt-2 text-3xl font-bold text-indigo-700">
+          {accuracy.accuracy}%
+        </p>
       </Card>
 
       <ul className="space-y-3">

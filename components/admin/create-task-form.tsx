@@ -56,6 +56,18 @@ export function CreateTaskForm() {
           />
         </div>
         <div>
+          <Label htmlFor="category">Category</Label>
+          <Input
+            id="category"
+            name="category"
+            placeholder="Animals, plants, vehicles..."
+            className="mt-1"
+          />
+          <p className="mt-1 text-xs text-foreground/60">
+            Categories help randomize user task suggestions.
+          </p>
+        </div>
+        <div>
           <Label htmlFor="type">Question type for this task</Label>
           <Select id="type" name="type" defaultValue="multiple_choice" className="mt-1">
             <option value="multiple_choice">Quiz (multiple choice)</option>
