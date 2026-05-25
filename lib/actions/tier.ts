@@ -141,6 +141,15 @@ export async function upsertTier(
     throw new Error("Invalid tier data");
   }
 
+  if (requiredReferralTierId) {
+    const requiredTier = await db.query.tiers.findFirst({
+      where: eq(tiers.id, requiredReferralTierId),
+    });
+    if (!requiredTier) {
+      throw new Error("Selected referral minimum tier does not exist");
+    }
+  }
+
   if (isDefault) {
     await db.update(tiers).set({ isDefault: false });
   }
@@ -154,7 +163,10 @@ export async function upsertTier(
     requiredReferralCount: Number.isNaN(requiredReferralCount)
       ? 0
       : requiredReferralCount,
-    requiredReferralTierId,
+    requiredReferralTierId:
+      Number.isNaN(requiredReferralCount) || requiredReferralCount <= 0
+        ? null
+        : requiredReferralTierId,
     isDefault,
   };
 

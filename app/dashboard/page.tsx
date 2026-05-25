@@ -161,7 +161,7 @@ export default async function DashboardPage() {
           </Card>
         ) : (
           <ul className="space-y-3">
-            {activeTasks.slice(0, 5).map((task) => (
+            {activeTasks.map((task) => (
               <li key={task.id}>
                 <Link href={`/tasks/${task.id}`}>
                   <Card className="flex items-center gap-3 transition active:scale-[0.99]">

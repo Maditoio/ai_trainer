@@ -1,6 +1,7 @@
 import { and, eq, gte } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { questions, submissions, tasks } from "@/lib/db/schema";
+import { questions, submissions, tasks, tiers } from "@/lib/db/schema";
+import { getUserTier } from "@/lib/quota";
 
 function startOfWeekUtc() {
   const now = new Date();
@@ -18,13 +19,23 @@ function shuffle<T>(items: T[]) {
 }
 
 export async function getWeeklyRandomTaskSuggestions(userId: string) {
+  const userTier = await getUserTier(userId);
+  if (!userTier) return [];
+
   const activeTasks = await db.query.tasks.findMany({
     where: eq(tasks.status, "active"),
   });
+  const allTiers = await db.query.tiers.findMany();
+  const tierById = new Map(allTiers.map((tier) => [tier.id, tier]));
   const weekStart = startOfWeekUtc();
 
   const freshTasks = [];
   for (const task of activeTasks) {
+    const minTier = task.minTierId ? tierById.get(task.minTierId) : null;
+    if (minTier && userTier.sortOrder < minTier.sortOrder) {
+      continue;
+    }
+
     const taskQuestions = await db.query.questions.findMany({
       where: eq(questions.taskId, task.id),
     });
@@ -49,6 +60,6 @@ export async function getWeeklyRandomTaskSuggestions(userId: string) {
     }
   }
 
-  return shuffle(freshTasks);
+  return shuffle(freshTasks).slice(0, userTier.dailyQuestionLimit);
 }
 

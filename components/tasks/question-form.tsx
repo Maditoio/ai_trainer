@@ -160,14 +160,15 @@ export function QuestionForm({ question, mode }: Props) {
         </CardDescription>
 
         {question.imageUrl && (
-          <div className="relative mt-4 aspect-video w-full overflow-hidden rounded-md">
+          <div className="relative mt-4 aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-100 shadow-sm ring-1 ring-slate-200">
             <Image
               src={question.imageUrl}
               alt="Task"
               fill
-              className="object-contain"
+              className="object-cover"
               unoptimized
             />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/10 to-transparent" />
           </div>
         )}
 
@@ -262,14 +263,15 @@ export function QuestionForm({ question, mode }: Props) {
       </CardDescription>
 
       {question.imageUrl && (
-        <div className="relative mt-4 aspect-video w-full overflow-hidden rounded-md">
+        <div className="relative mt-4 aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-100 shadow-sm ring-1 ring-slate-200">
           <Image
             src={question.imageUrl}
             alt="Task"
             fill
-            className="object-contain"
+            className="object-cover"
             unoptimized
           />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/10 to-transparent" />
         </div>
       )}
 

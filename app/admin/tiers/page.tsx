@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { tiers } from "@/lib/db/schema";
 import { deleteTier, upsertTier } from "@/lib/actions/tier";
 import { Button } from "@/components/ui/button";
-import { Card, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -11,6 +11,7 @@ export default async function AdminTiersPage() {
   const allTiers = await db.query.tiers.findMany({
     orderBy: [asc(tiers.sortOrder)],
   });
+  const tierNameById = new Map(allTiers.map((tier) => [tier.id, tier.name]));
 
   return (
     <div className="space-y-8">
@@ -45,11 +46,14 @@ export default async function AdminTiersPage() {
           </div>
           <div>
             <Label>Referral minimum tier</Label>
+            <p className="mb-1 text-xs text-[var(--muted)]">
+              Required referrals must be on this tier or a higher tier.
+            </p>
             <select
               name="requiredReferralTierId"
               className="min-h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-base"
             >
-              <option value="">Any tier</option>
+              <option value="">Any referred user</option>
               {allTiers.map((tier) => (
                 <option key={tier.id} value={tier.id}>
                   {tier.name} or higher
@@ -121,12 +125,18 @@ export default async function AdminTiersPage() {
                 </div>
                 <div>
                   <Label>Referral minimum tier</Label>
+                  <p className="mb-1 text-xs text-[var(--muted)]">
+                    Current:{" "}
+                    {tier.requiredReferralTierId
+                      ? `${tierNameById.get(tier.requiredReferralTierId) ?? "Unknown tier"} or higher`
+                      : "Any referred user"}
+                  </p>
                   <select
                     name="requiredReferralTierId"
                     defaultValue={tier.requiredReferralTierId ?? ""}
                     className="min-h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-base"
                   >
-                    <option value="">Any tier</option>
+                    <option value="">Any referred user</option>
                     {allTiers.map((option) => (
                       <option key={option.id} value={option.id}>
                         {option.name} or higher
@@ -134,6 +144,13 @@ export default async function AdminTiersPage() {
                     ))}
                   </select>
                 </div>
+                <CardDescription className="md:col-span-2">
+                  Referral requirement: {tier.requiredReferralCount} referral
+                  {tier.requiredReferralCount === 1 ? "" : "s"}{" "}
+                  {tier.requiredReferralTierId
+                    ? `on ${tierNameById.get(tier.requiredReferralTierId) ?? "the selected tier"} or higher`
+                    : "from any tier"}
+                </CardDescription>
                 <div className="flex items-end gap-2">
                   <label className="flex items-center gap-2 text-sm">
                     <input
