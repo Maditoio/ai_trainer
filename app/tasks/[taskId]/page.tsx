@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { asc, eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -14,7 +14,7 @@ export default async function TaskDetailPage({
 }) {
   const { taskId } = await params;
   const session = await auth();
-  if (!session?.user?.id) return null;
+  if (!session?.user?.id) redirect("/login");
 
   const task = await db.query.tasks.findFirst({
     where: eq(tasks.id, taskId),

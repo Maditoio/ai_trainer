@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
@@ -15,7 +16,7 @@ import { Brain, Coins, Sparkles, Wallet } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await auth();
-  if (!session?.user?.id) return null;
+  if (!session?.user?.id) redirect("/login");
 
   const userId = session.user.id;
   const quota = await canAnswerTaskToday(userId);

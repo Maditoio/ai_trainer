@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
-  const isLoggedIn = !!req.auth;
+  const isLoggedIn = !!req.auth?.user?.id;
   const role = req.auth?.user?.role;
 
   const publicPaths = ["/", "/login", "/register"];

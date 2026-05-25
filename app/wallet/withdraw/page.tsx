@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getWithdrawalHistory } from "@/lib/actions/withdrawals";
 import { getWalletBalance } from "@/lib/wallet/ledger";
@@ -8,7 +9,7 @@ import { Card } from "@/components/ui/card";
 
 export default async function WithdrawPage() {
   const session = await auth();
-  if (!session?.user?.id) return null;
+  if (!session?.user?.id) redirect("/login");
 
   const balance = await getWalletBalance(session.user.id);
   const withdrawals = await getWithdrawalHistory();
