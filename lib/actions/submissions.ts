@@ -104,7 +104,6 @@ export async function submitTaskAnswer(
       : undefined;
 
   revalidatePath("/dashboard");
-  revalidatePath(`/tasks/${task.id}`);
   return {
     success: true,
     correct: isCorrect,

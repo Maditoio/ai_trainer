@@ -22,6 +22,7 @@ export function QuestionForm({ question, mode }: Props) {
   const [message, setMessage] = useState<string | null>(null);
   const [progressText, setProgressText] = useState<string | null>(null);
   const [progressStep, setProgressStep] = useState(0);
+  const [completionMessage, setCompletionMessage] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   const options = getQuestionOptions(question);
   const aiSuggestion = mode === "task" ? getAiSuggestion(question.id, options) : null;
@@ -127,11 +128,13 @@ export function QuestionForm({ question, mode }: Props) {
 
     setIsPending(true);
     setMessage(null);
-    setProgressText("Submitting training signal");
+    setProgressText("Training AI");
     setProgressStep(0);
 
     try {
-      const result = await submitTaskAnswer(question.id, payload);
+      const resultPromise = submitTaskAnswer(question.id, payload);
+      await runProgressSequence();
+      const result = await resultPromise;
 
       if ("error" in result && result.error) {
         setMessage(result.error);
@@ -139,22 +142,14 @@ export function QuestionForm({ question, mode }: Props) {
         return;
       }
 
-      await runProgressSequence();
-
       const reward =
         result.correct && "reward" in result && result.reward
-          ? ` You earned ${result.reward} USDT.`
+          ? `Reward: ${result.reward} USDT`
           : "";
-      const next =
-        "nextAvailableAt" in result && result.nextAvailableAt
-          ? ` Next training unlocks at ${new Date(
-              result.nextAvailableAt,
-            ).toLocaleString()}.`
-          : "";
-      setMessage(
+      setCompletionMessage(
         result.correct
-          ? `AI trained successfully.${reward}${next}`
-          : `Training recorded. The selected correction did not match the expected answer.${next}`,
+          ? `Training completed successfully.${reward ? ` ${reward}.` : ""}`
+          : "Training completed.",
       );
       setAiVerdict(null);
       setCorrectedOptionId("");
@@ -165,12 +160,20 @@ export function QuestionForm({ question, mode }: Props) {
   }
 
   if (mode === "task") {
+    if (completionMessage) {
+      return (
+        <Card className="border-emerald-200 bg-emerald-50">
+          <CardTitle className="text-emerald-950">Training completed</CardTitle>
+          <CardDescription className="mt-2 text-emerald-800">
+            {completionMessage}
+          </CardDescription>
+        </Card>
+      );
+    }
+
     return (
       <Card>
-        <CardTitle>{question.prompt}</CardTitle>
-        <CardDescription className="mt-1">
-          Review the AI suggestion and train the model with your feedback.
-        </CardDescription>
+        <CardTitle>Train AI</CardTitle>
 
         {question.imageUrl && (
           <div className="relative mt-4 aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-100 shadow-sm ring-1 ring-slate-200">
@@ -236,9 +239,7 @@ export function QuestionForm({ question, mode }: Props) {
 
         {aiVerdict === "wrong" && (
           <div className="mt-4 rounded-2xl border border-red-100 bg-red-50 p-4">
-            <p className="text-sm font-bold text-red-900">
-              Select the correct answer before training the AI
-            </p>
+            <p className="text-sm font-bold text-red-900">Choose the correct answer</p>
             <div className="mt-3 grid gap-2">
               {correctionOptions.map((opt) => (
                 <button
