@@ -1,6 +1,6 @@
-# AI Trainer
+# ModelMind
 
-Web platform for image labeling and quiz tasks with tiered USDT platform rewards, internal wallet, and admin management.
+Web platform for AI training tasks with tiered platform rewards, internal wallet, Telegram support, and admin management.
 
 ## Stack
 
@@ -35,12 +35,13 @@ Web platform for image labeling and quiz tasks with tiered USDT platform rewards
    - `NOWPAYMENTS_PAY_CURRENCY=usdtmatic`
    - `NOWPAYMENTS_IPN_CALLBACK_URL=https://your-domain.com/api/webhooks/nowpayments`
    - `NEXT_PUBLIC_APP_URL=https://your-domain.com`
-4. Deploy, then run migrations and seed against production:
+4. Optional support link: set `NEXT_PUBLIC_TELEGRAM_SUPPORT_URL` to the admin support channel or chat.
+5. Deploy, then run migrations and seed against production:
    ```bash
    npm run db:migrate
    npm run db:seed
    ```
-5. Sign in as admin, create tasks, add questions, and set each task to **Active**. Users only see active tasks.
+6. Sign in as admin, create tasks, add questions, and set each task to **Active**. Users only see active tasks.
 
 ## Features
 

@@ -8,13 +8,18 @@ export default auth((req) => {
 
   const publicPaths = ["/", "/login", "/register"];
   const isPublic = publicPaths.includes(pathname);
+  const homePath = role === "admin" ? "/admin" : "/dashboard";
 
   if (!isLoggedIn && !isPublic) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
   if (isLoggedIn && (pathname === "/login" || pathname === "/register")) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    return NextResponse.redirect(new URL(homePath, req.url));
+  }
+
+  if (isLoggedIn && role === "admin" && pathname === "/dashboard") {
+    return NextResponse.redirect(new URL("/admin", req.url));
   }
 
   if (pathname.startsWith("/admin") && role !== "admin") {

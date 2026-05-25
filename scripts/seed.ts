@@ -59,7 +59,7 @@ async function seed() {
   }
 
   const adminEmail = (
-    process.env.ADMIN_EMAIL ?? "admin@aitrainer.local"
+    process.env.ADMIN_EMAIL ?? "admin@modelmind.local"
   ).toLowerCase();
   const adminPassword = process.env.ADMIN_PASSWORD ?? "admin123456";
 

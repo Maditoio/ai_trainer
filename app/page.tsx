@@ -2,7 +2,15 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { Brain, Image, ListChecks, Smartphone, Sparkles } from "lucide-react";
+import { APP_NAME, TELEGRAM_SUPPORT_URL } from "@/lib/constants";
+import {
+  Brain,
+  Image,
+  ListChecks,
+  MessageCircle,
+  Smartphone,
+  Sparkles,
+} from "lucide-react";
 
 export default async function HomePage() {
   const session = await auth();
@@ -18,7 +26,7 @@ export default async function HomePage() {
           <span className="gradient-text">One task at a time.</span>
         </h1>
         <p className="mx-auto mt-3 max-w-xs text-[var(--muted)]">
-          AI Trainer turns simple human judgment into better machine learning.
+          {APP_NAME} turns simple human judgment into better machine learning.
           Review images, answer questions, and help build cleaner training data.
         </p>
         <div className="mt-6 flex flex-col gap-3">
@@ -82,6 +90,91 @@ export default async function HomePage() {
           </div>
         </Card>
       </div>
+
+      <Card className="border-indigo-100 bg-indigo-50">
+        <div className="flex gap-4">
+          <MessageCircle className="h-8 w-8 shrink-0 text-indigo-600" />
+          <div>
+            <CardTitle className="text-base text-indigo-950">
+              Telegram support
+            </CardTitle>
+            <CardDescription className="text-indigo-800">
+              Need help with your account or training tasks? Contact support on
+              Telegram.
+            </CardDescription>
+            <a
+              href={TELEGRAM_SUPPORT_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-flex text-sm font-semibold text-indigo-700 hover:text-indigo-900"
+            >
+              Open Telegram support
+            </a>
+          </div>
+        </div>
+      </Card>
+
+      <section className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div>
+          <p className="text-sm font-semibold text-indigo-600">About Us</p>
+          <h2 className="mt-1 text-2xl font-bold text-slate-900">
+            AI training opportunities for people everywhere
+          </h2>
+        </div>
+        <div className="space-y-4 text-sm leading-6 text-slate-600">
+          <p>
+            At {APP_NAME}, we connect people around the world with opportunities
+            to help build the next generation of Artificial Intelligence.
+          </p>
+          <p>
+            Leading AI companies require large amounts of human feedback and
+            real-world knowledge to train and improve their AI models. AI
+            systems learn from data, but they also need people to review
+            information, evaluate responses, label content, test AI outputs, and
+            provide feedback that helps models become more accurate, useful, and
+            reliable.
+          </p>
+          <p>
+            Our platform provides access to these AI training tasks through a
+            simple and user-friendly experience. Participants complete tasks that
+            contribute to the development of advanced AI technologies used by
+            businesses, researchers, and millions of people worldwide.
+          </p>
+          <p>
+            In return, our partners compensate us for the completed work,
+            allowing us to reward our community members with real earnings for
+            their contributions.
+          </p>
+          <p>
+            Whether you are a student, professional, freelancer, or simply
+            someone looking to earn additional income online, our platform
+            offers an opportunity to participate in the rapidly growing AI
+            industry while helping shape the future of intelligent technology.
+          </p>
+        </div>
+        <div className="rounded-2xl bg-slate-50 p-4">
+          <h3 className="font-bold text-slate-900">Our Mission</h3>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            To create opportunities for people everywhere to contribute to the
+            advancement of Artificial Intelligence while earning fair rewards for
+            their time, knowledge, and effort.
+          </p>
+        </div>
+        <div>
+          <h3 className="font-bold text-slate-900">What You Can Expect</h3>
+          <ul className="mt-3 space-y-2 text-sm text-slate-600">
+            <li>Access to AI training and evaluation tasks</li>
+            <li>Flexible work that can be completed online</li>
+            <li>Transparent tracking of your contributions</li>
+            <li>Real earnings based on completed tasks</li>
+            <li>Opportunities to support cutting-edge AI development</li>
+          </ul>
+        </div>
+        <p className="text-sm font-semibold text-slate-900">
+          Together, we are helping train the AI systems of tomorrow—one task at
+          a time.
+        </p>
+      </section>
     </div>
   );
 }

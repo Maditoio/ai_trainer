@@ -39,7 +39,7 @@ export async function MobileShell({ children }: { children: React.ReactNode }) {
               <Brain className="h-5 w-5" />
             </span>
             <span className="font-bold text-slate-900">
-              AI<span className="gradient-text">Trainer</span>
+              Model<span className="gradient-text">Mind</span>
             </span>
           </Link>
           {session?.user && (

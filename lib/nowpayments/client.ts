@@ -1,3 +1,5 @@
+import { APP_NAME } from "@/lib/constants";
+
 const API_BASE =
   process.env.NOWPAYMENTS_SANDBOX === "true"
     ? "https://api-sandbox.nowpayments.io/v1"
@@ -51,7 +53,7 @@ export async function createUsdtDepositPayment(params: {
       price_currency: "usd",
       pay_currency: getPayCurrency(),
       order_id: `dep_${params.userId}_${params.depositId}`,
-      order_description: `AI Trainer wallet deposit`,
+      order_description: `${APP_NAME} wallet deposit`,
       ipn_callback_url: ipnUrl,
     }),
   });

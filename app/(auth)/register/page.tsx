@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { APP_NAME } from "@/lib/constants";
 import { Brain } from "lucide-react";
 
 export default async function RegisterPage({
@@ -19,7 +20,7 @@ export default async function RegisterPage({
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl gradient-bg text-white">
           <Brain className="h-8 w-8" />
         </span>
-        <h1 className="mt-4 text-2xl font-bold text-slate-900">Join AI Trainer</h1>
+        <h1 className="mt-4 text-2xl font-bold text-slate-900">Join {APP_NAME}</h1>
         <p className="mt-1 text-sm text-[var(--muted)]">
           Start helping AI learn from clear human feedback
         </p>

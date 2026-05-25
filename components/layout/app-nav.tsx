@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { auth, signOut } from "@/lib/auth";
+import { APP_NAME } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 
 export async function AppNav() {
@@ -28,7 +29,7 @@ export async function AppNav() {
     <header className="border-b border-foreground/10">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4">
         <Link href={isAdmin ? "/admin" : "/dashboard"} className="font-semibold">
-          AI Trainer
+          {APP_NAME}
         </Link>
         <nav className="flex flex-wrap items-center gap-3 text-sm">
           {links.map((l) => (
