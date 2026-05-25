@@ -3,7 +3,6 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { tasks, users } from "@/lib/db/schema";
-import { TRAINING_QUESTIONS_PER_DAY, TRAINING_REWARD_USDT } from "@/lib/constants";
 import { canAnswerTaskToday } from "@/lib/quota";
 import { getWalletBalance } from "@/lib/wallet/ledger";
 import { Button } from "@/components/ui/button";
@@ -26,6 +25,8 @@ export default async function DashboardPage() {
   });
 
   const canTrainToday = quota.allowed;
+  const rewardUsdt = quota.rewardUsdt ?? "0";
+  const tierName = quota.tierName ?? "Current";
 
   return (
     <div className="space-y-6">
@@ -58,19 +59,23 @@ export default async function DashboardPage() {
         <Card className="bg-amber-50 border-amber-100">
           <Coins className="h-5 w-5 text-amber-600" />
           <p className="mt-2 text-lg font-bold text-amber-900">
-            {TRAINING_REWARD_USDT}
+            {rewardUsdt}
           </p>
           <CardDescription className="text-amber-800">
-            USDT per question
+            USDT per question on {tierName}
           </CardDescription>
         </Card>
         <Card className={canTrainToday ? "bg-emerald-50 border-emerald-100" : "bg-slate-50"}>
           <Sparkles className={`h-5 w-5 ${canTrainToday ? "text-emerald-600" : "text-slate-400"}`} />
           <p className="mt-2 text-lg font-bold text-slate-900">
-            {quota.used}/{TRAINING_QUESTIONS_PER_DAY}
+            {quota.used}/{quota.limit}
           </p>
           <CardDescription>
-            {canTrainToday ? "Ready to train today" : "Come back tomorrow"}
+            {canTrainToday
+              ? `Ready to train on ${tierName}`
+              : quota.nextAvailableAt
+                ? `Unlocks ${new Date(quota.nextAvailableAt).toLocaleTimeString()}`
+                : "Come back tomorrow"}
           </CardDescription>
         </Card>
       </div>
@@ -96,7 +101,11 @@ export default async function DashboardPage() {
         </div>
         {activeTasks.length === 0 ? (
           <Card>
-            <CardDescription>No tasks live yet. Check back soon.</CardDescription>
+            <CardTitle>No active training tasks are live yet</CardTitle>
+            <CardDescription className="mt-1">
+              An admin needs to create a task, add questions, and set it to Active
+              before users can train.
+            </CardDescription>
           </Card>
         ) : (
           <ul className="space-y-3">
@@ -114,7 +123,7 @@ export default async function DashboardPage() {
                       </p>
                     </div>
                     <Badge>
-                      {canTrainToday ? `+${TRAINING_REWARD_USDT}` : "Tomorrow"}
+                      {canTrainToday ? `+${rewardUsdt}` : "Locked"}
                     </Badge>
                   </Card>
                 </Link>

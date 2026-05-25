@@ -3,7 +3,7 @@ import { asc, eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { questions, tasks } from "@/lib/db/schema";
-import { hasSubmittedQuestion } from "@/lib/quota";
+import { canAnswerTaskToday, hasSubmittedQuestion } from "@/lib/quota";
 import { QuestionForm } from "@/components/tasks/question-form";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 
@@ -27,6 +27,7 @@ export default async function TaskDetailPage({
   });
 
   const userId = session.user.id;
+  const quota = await canAnswerTaskToday(userId);
   let nextQuestion = null;
   for (const q of taskQuestions) {
     if (!(await hasSubmittedQuestion(userId, q.id))) {
@@ -42,9 +43,25 @@ export default async function TaskDetailPage({
       <div>
         <h1 className="text-2xl font-bold">{task.title}</h1>
         <p className="text-foreground/60">{task.description}</p>
+        <p className="mt-2 text-sm text-[var(--muted)]">
+          {quota.tierName}: {quota.rewardUsdt} USDT per correct answer ·{" "}
+          {quota.used}/{quota.limit} used today
+        </p>
       </div>
 
-      {completed ? (
+      {!quota.allowed ? (
+        <Card>
+          <CardTitle>Training locked for now</CardTitle>
+          <CardDescription className="mt-2">
+            {quota.reason}
+            {quota.nextAvailableAt
+              ? ` You can train again at ${new Date(
+                  quota.nextAvailableAt,
+                ).toLocaleString()}.`
+              : ""}
+          </CardDescription>
+        </Card>
+      ) : completed ? (
         <Card>
           <CardTitle>Task complete</CardTitle>
           <CardDescription className="mt-2">

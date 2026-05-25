@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { registerAction } from "@/lib/actions/auth";
-import { TRAINING_REWARD_USDT } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,7 +15,7 @@ export default function RegisterPage() {
         </span>
         <h1 className="mt-4 text-2xl font-bold text-slate-900">Join AI Trainer</h1>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Earn {TRAINING_REWARD_USDT} USDT per training question · 1 per day
+          Earn USDT per training question based on your package
         </p>
       </div>
 

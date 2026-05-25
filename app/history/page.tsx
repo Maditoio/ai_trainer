@@ -1,11 +1,14 @@
 import { getTaskEarningsHistory } from "@/lib/actions/history";
-import { TRAINING_REWARD_USDT } from "@/lib/constants";
+import { auth } from "@/lib/auth";
+import { getUserTier } from "@/lib/quota";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, XCircle } from "lucide-react";
 
 export default async function HistoryPage() {
+  const session = await auth();
   const history = await getTaskEarningsHistory();
+  const tier = session?.user?.id ? await getUserTier(session.user.id) : null;
 
   const totalEarned = history
     .filter((h) => h.status === "correct")
@@ -17,7 +20,9 @@ export default async function HistoryPage() {
       <div>
         <h1 className="text-2xl font-bold">Training history</h1>
         <p className="text-sm text-[var(--muted)]">
-          {TRAINING_REWARD_USDT} USDT per correct answer · 1 question / day
+          {tier
+            ? `${tier.name}: ${tier.usdtPerQuestion} USDT per correct answer · ${tier.dailyQuestionLimit} per day`
+            : "Actual earned amounts are shown below"}
         </p>
       </div>
 

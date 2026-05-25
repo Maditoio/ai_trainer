@@ -65,6 +65,16 @@ export default async function AdminTaskDetailPage({
         </Card>
       )}
 
+      {task.status !== "active" && taskQuestions.length > 0 && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardTitle className="text-amber-900">Users cannot see this yet</CardTitle>
+          <CardDescription className="mt-1 text-amber-800">
+            This task has questions, but it is still {task.status}. Set
+            Visibility to Active and save settings to publish it on Vercel.
+          </CardDescription>
+        </Card>
+      )}
+
       <Steps
         current={step}
         steps={[

@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { questions, submissions, tasks } from "@/lib/db/schema";
-import { TRAINING_REWARD_USDT } from "@/lib/constants";
+import { PAID_TASK_COOLDOWN_HOURS } from "@/lib/constants";
 import { gradeQuestion } from "@/lib/grading";
 import {
   canAnswerTaskToday,
@@ -48,7 +48,7 @@ export async function submitTaskAnswer(questionId: string, answer: string) {
   if (!tier) return { error: "No tier assigned" };
 
   const isCorrect = gradeQuestion(question, answer);
-  const rewardUsdt = isCorrect ? TRAINING_REWARD_USDT : "0";
+  const rewardUsdt = isCorrect ? tier.usdtPerQuestion : "0";
 
   await db.insert(submissions).values({
     userId,
@@ -65,8 +65,16 @@ export async function submitTaskAnswer(questionId: string, answer: string) {
       amount: rewardUsdt,
       metadata: { questionId, taskId: task.id },
     });
-    await incrementDailyUsage(userId);
   }
+  await incrementDailyUsage(userId);
+
+  const used = quota.used + 1;
+  const nextAvailableAt =
+    tier.dailyQuestionLimit > 1 && used < quota.limit
+      ? new Date(
+          Date.now() + PAID_TASK_COOLDOWN_HOURS * 60 * 60 * 1000,
+        ).toISOString()
+      : undefined;
 
   revalidatePath("/dashboard");
   revalidatePath(`/tasks/${task.id}`);
@@ -74,8 +82,14 @@ export async function submitTaskAnswer(questionId: string, answer: string) {
     success: true,
     correct: isCorrect,
     reward: rewardUsdt,
+    tier: {
+      name: tier.name,
+      rewardUsdt: tier.usdtPerQuestion,
+      dailyQuestionLimit: tier.dailyQuestionLimit,
+    },
+    nextAvailableAt,
     quota: isCorrect
-      ? { used: quota.used + 1, limit: quota.limit }
-      : { used: quota.used, limit: quota.limit },
+      ? { used, limit: quota.limit }
+      : { used, limit: quota.limit },
   };
 }

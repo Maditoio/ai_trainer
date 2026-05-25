@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { submitTaskAnswer } from "@/lib/actions/submissions";
 import { submitFreeTrainingAnswer } from "@/lib/actions/free-training";
@@ -17,12 +17,31 @@ type Props = {
 export function QuestionForm({ question, mode }: Props) {
   const [answer, setAnswer] = useState("");
   const [message, setMessage] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [progressText, setProgressText] = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
   const options = getQuestionOptions(question);
 
-  function onSubmit() {
+  async function runProgressSequence() {
+    const steps = [
+      "Analyzing answer",
+      "Training AI",
+      "Updating AI database",
+      "Training completed",
+    ];
+
+    for (const step of steps) {
+      setProgressText(step);
+      await new Promise((resolve) => setTimeout(resolve, 7500));
+    }
+  }
+
+  async function onSubmit() {
     if (!answer) return;
-    startTransition(async () => {
+    setIsPending(true);
+    setMessage(null);
+    setProgressText("Submitting answer");
+
+    try {
       const result =
         mode === "free-training"
           ? await submitFreeTrainingAnswer(question.id, answer)
@@ -30,19 +49,40 @@ export function QuestionForm({ question, mode }: Props) {
 
       if ("error" in result && result.error) {
         setMessage(result.error);
+        setProgressText(null);
         return;
       }
+
+      await runProgressSequence();
+
       if (result.correct) {
+        const reward =
+          "reward" in result && result.reward ? ` You earned ${result.reward} USDT.` : "";
+        const next =
+          "nextAvailableAt" in result && result.nextAvailableAt
+            ? ` Next training unlocks at ${new Date(
+                result.nextAvailableAt,
+              ).toLocaleString()}.`
+            : "";
         setMessage(
           mode === "free-training" && "completed" in result && result.completed
             ? "Correct! Free training complete — 1 USDT credited."
-            : "Correct!",
+            : `Correct!${reward}${next}`,
         );
       } else {
-        setMessage("Incorrect. Try again tomorrow or the next question.");
+        const next =
+          "nextAvailableAt" in result && result.nextAvailableAt
+            ? ` Next training unlocks at ${new Date(
+                result.nextAvailableAt,
+              ).toLocaleString()}.`
+            : "";
+        setMessage(`Incorrect. No reward for this answer.${next}`);
       }
       setAnswer("");
-    });
+    } finally {
+      setProgressText(null);
+      setIsPending(false);
+    }
   }
 
   return (
@@ -74,6 +114,7 @@ export function QuestionForm({ question, mode }: Props) {
               type="radio"
               name="answer"
               value={question.type === "multiple_choice" ? opt.id : opt.label}
+              disabled={isPending}
               checked={
                 question.type === "multiple_choice"
                   ? answer === opt.id
@@ -90,10 +131,18 @@ export function QuestionForm({ question, mode }: Props) {
         ))}
       </div>
 
-      <Button className="mt-4" onClick={onSubmit} disabled={!answer || isPending}>
+      <Button className="mt-4 w-full" onClick={onSubmit} disabled={!answer || isPending}>
         {isPending ? "Submitting…" : "Submit answer"}
       </Button>
-      {message && <p className="mt-2 text-sm">{message}</p>}
+      {progressText && (
+        <div className="mt-4 rounded-xl bg-indigo-50 p-4 text-sm font-semibold text-indigo-800">
+          {progressText}…
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-indigo-100">
+            <div className="h-full animate-pulse rounded-full bg-indigo-500" />
+          </div>
+        </div>
+      )}
+      {message && <p className="mt-3 text-sm font-medium text-slate-700">{message}</p>}
     </Card>
   );
 }

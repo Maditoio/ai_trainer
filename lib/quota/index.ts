@@ -1,7 +1,7 @@
-import { and, eq, gte, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { dailyUsage, submissions, tiers, users } from "@/lib/db/schema";
-import { TRAINING_QUESTIONS_PER_DAY } from "@/lib/constants";
+import { dailyUsage, questions, submissions, tiers, users } from "@/lib/db/schema";
+import { PAID_TASK_COOLDOWN_HOURS } from "@/lib/constants";
 import { todayUtc } from "@/lib/utils";
 
 export async function getUserTier(userId: string) {
@@ -26,10 +26,33 @@ export async function getDailyUsageCount(userId: string): Promise<number> {
   return row?.questionCount ?? 0;
 }
 
+export async function getLastPaidSubmission(userId: string) {
+  const recent = await db.query.submissions.findMany({
+    where: eq(submissions.userId, userId),
+    orderBy: [desc(submissions.createdAt)],
+    limit: 25,
+  });
+
+  for (const submission of recent) {
+    const question = await db.query.questions.findFirst({
+      where: eq(questions.id, submission.questionId),
+    });
+    if (question && !question.isFreeTraining) {
+      return submission;
+    }
+  }
+
+  return null;
+}
+
 export async function canAnswerTaskToday(userId: string): Promise<{
   allowed: boolean;
   used: number;
   limit: number;
+  tierName?: string;
+  rewardUsdt?: string;
+  nextAvailableAt?: string;
+  cooldownRemainingMs?: number;
   reason?: string;
 }> {
   const tier = await getUserTier(userId);
@@ -42,16 +65,44 @@ export async function canAnswerTaskToday(userId: string): Promise<{
     };
   }
   const used = await getDailyUsageCount(userId);
-  const limit = Math.min(tier.dailyQuestionLimit, TRAINING_QUESTIONS_PER_DAY);
+  const limit = tier.dailyQuestionLimit;
+  const base = {
+    used,
+    limit,
+    tierName: tier.name,
+    rewardUsdt: tier.usdtPerQuestion,
+  };
+
   if (used >= limit) {
     return {
+      ...base,
       allowed: false,
-      used,
-      limit,
       reason: `Daily limit reached (${limit} questions per day).`,
     };
   }
-  return { allowed: true, used, limit };
+
+  if (limit > 1) {
+    const lastPaidSubmission = await getLastPaidSubmission(userId);
+    if (lastPaidSubmission?.createdAt) {
+      const nextAvailable = new Date(lastPaidSubmission.createdAt);
+      nextAvailable.setHours(
+        nextAvailable.getHours() + PAID_TASK_COOLDOWN_HOURS,
+      );
+
+      const cooldownRemainingMs = nextAvailable.getTime() - Date.now();
+      if (cooldownRemainingMs > 0) {
+        return {
+          ...base,
+          allowed: false,
+          nextAvailableAt: nextAvailable.toISOString(),
+          cooldownRemainingMs,
+          reason: `Your ${tier.name} package has a ${PAID_TASK_COOLDOWN_HOURS}-hour wait between training questions. Next question unlocks at ${nextAvailable.toLocaleString()}.`,
+        };
+      }
+    }
+  }
+
+  return { ...base, allowed: true };
 }
 
 export async function incrementDailyUsage(userId: string) {

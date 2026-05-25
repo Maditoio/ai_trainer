@@ -29,14 +29,25 @@ Web platform for image labeling and quiz tasks with tiered USDT platform rewards
 
 1. Import repo and add **Vercel Postgres** + **Blob** storage.
 2. Set `DATABASE_URL`, `AUTH_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`.
-3. Deploy, then run `npm run db:push` and `npm run db:seed` against production DB (or use Vercel CLI).
+3. Set NOWPayments variables:
+   - `NOWPAYMENTS_API_KEY`
+   - `NOWPAYMENTS_IPN_SECRET`
+   - `NOWPAYMENTS_PAY_CURRENCY=usdtmatic`
+   - `NOWPAYMENTS_IPN_CALLBACK_URL=https://your-domain.com/api/webhooks/nowpayments`
+   - `NEXT_PUBLIC_APP_URL=https://your-domain.com`
+4. Deploy, then run migrations and seed against production:
+   ```bash
+   npm run db:migrate
+   npm run db:seed
+   ```
+5. Sign in as admin, create tasks, add questions, and set each task to **Active**. Users only see active tasks.
 
 ## Features
 
 - **Free training**: 3 questions, 1/day, 1 USDT bonus on completion
-- **Tasks**: Admin-created image label / multiple choice questions
-- **Tiers**: Daily limits and per-question USDT rewards; upgrade via wallet
-- **Wallet**: Internal ledger; deposit requests approved by admin
+- **Tasks**: Admin-created image label / multiple choice questions. Draft tasks are hidden from users.
+- **Tiers**: Daily limits and exact per-question USDT rewards; tiers with more than one daily task wait 6 hours between paid answers.
+- **Wallet**: NOWPayments USDT Polygon deposits, internal ledger, and withdrawal requests.
 
 Platform balances are not on-chain cryptocurrency until integrated later.
 

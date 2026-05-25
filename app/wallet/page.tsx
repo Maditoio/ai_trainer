@@ -3,7 +3,7 @@ import { getCryptoDepositHistory } from "@/lib/actions/crypto";
 import { getWithdrawalHistory } from "@/lib/actions/withdrawals";
 import { getWalletBalance } from "@/lib/wallet/ledger";
 import { auth } from "@/lib/auth";
-import { TRAINING_REWARD_USDT } from "@/lib/constants";
+import { getUserTier } from "@/lib/quota";
 import { DepositForm } from "@/components/wallet/deposit-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ export default async function WalletPage() {
   if (!session?.user?.id) return null;
 
   const balance = await getWalletBalance(session.user.id);
+  const tier = await getUserTier(session.user.id);
   const cryptoDeposits = await getCryptoDepositHistory();
   const withdrawals = await getWithdrawalHistory();
 
@@ -46,9 +47,13 @@ export default async function WalletPage() {
       </Card>
 
       <Card className="bg-emerald-50 border-emerald-200">
-        <CardTitle className="text-emerald-900">Earn {TRAINING_REWARD_USDT} USDT / day</CardTitle>
+        <CardTitle className="text-emerald-900">
+          Your {tier?.name ?? "current"} package
+        </CardTitle>
         <CardDescription className="text-emerald-800">
-          Complete 1 training question per day to earn {TRAINING_REWARD_USDT} USDT.
+          Earn {tier?.usdtPerQuestion ?? "0"} USDT per completed training
+          question, up to {tier?.dailyQuestionLimit ?? 0} per day. Packages with
+          more than one daily question wait 6 hours between answers.
         </CardDescription>
         <Link href="/tasks" className="mt-3 inline-block">
           <Button variant="accent" className="text-sm">

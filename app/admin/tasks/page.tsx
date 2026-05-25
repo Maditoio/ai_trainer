@@ -87,6 +87,17 @@ export default async function AdminTasksPage() {
                       {count} question{count === 1 ? "" : "s"}
                       {task.description ? ` · ${task.description}` : ""}
                     </CardDescription>
+                    {task.status === "draft" && count > 0 && (
+                      <p className="mt-2 text-sm font-medium text-amber-700">
+                        Ready to publish: open this task and set Visibility to
+                        Active.
+                      </p>
+                    )}
+                    {task.status === "draft" && count === 0 && (
+                      <p className="mt-2 text-sm font-medium text-slate-500">
+                        Add at least one question, then activate it for users.
+                      </p>
+                    )}
                   </div>
                   <Link href={`/admin/tasks/${task.id}`}>
                     <Button variant="outline">Manage →</Button>

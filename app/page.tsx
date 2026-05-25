@@ -1,12 +1,16 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
-import { TRAINING_REWARD_USDT } from "@/lib/constants";
+import { getUserTier } from "@/lib/quota";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Brain, Coins, Smartphone, Wallet } from "lucide-react";
 
 export default async function HomePage() {
   const session = await auth();
+  const tier = session?.user?.id ? await getUserTier(session.user.id) : null;
+  const rewardText = tier
+    ? `${tier.usdtPerQuestion} USDT per question on ${tier.name}`
+    : "tier-based USDT rewards";
 
   return (
     <div className="space-y-8 pb-8">
@@ -19,8 +23,8 @@ export default async function HomePage() {
           <span className="gradient-text">Earn USDT.</span>
         </h1>
         <p className="mx-auto mt-3 max-w-xs text-[var(--muted)]">
-          Mobile-first training tasks. {TRAINING_REWARD_USDT} USDT per correct
-          answer, once per day. Deposit & withdraw on Polygon.
+          Mobile-first training tasks with {rewardText}. Deposit & withdraw on
+          Polygon.
         </p>
         <div className="mt-6 flex flex-col gap-3">
           {session ? (
@@ -48,8 +52,9 @@ export default async function HomePage() {
           <div>
             <CardTitle className="text-base">Daily earnings</CardTitle>
             <CardDescription>
-              {TRAINING_REWARD_USDT} USDT for each training question you complete
-              today.
+              {tier
+                ? `${tier.usdtPerQuestion} USDT for each training question on your ${tier.name} package.`
+                : "Your package controls the exact USDT price per training question."}
             </CardDescription>
           </div>
         </Card>
