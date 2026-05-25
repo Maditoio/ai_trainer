@@ -1,9 +1,6 @@
 import Link from "next/link";
-import { loginAction } from "@/lib/actions/auth";
-import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { LoginForm } from "@/components/auth/login-form";
 import { Brain } from "lucide-react";
 
 export default function LoginPage() {
@@ -20,33 +17,7 @@ export default function LoginPage() {
       </div>
 
       <Card>
-        <form action={loginAction} className="space-y-4">
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              className="mt-1"
-            />
-          </div>
-          <Button type="submit" className="w-full">
-            Sign in
-          </Button>
-        </form>
+        <LoginForm />
       </Card>
 
       <p className="text-center text-sm text-[var(--muted)]">
