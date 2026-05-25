@@ -1,21 +1,37 @@
 import { getTiersForUpgrade, upgradeTier } from "@/lib/actions/tier";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default async function TierPage() {
   const data = await getTiersForUpgrade();
   if (!data) return null;
+  const hasTier = !!data.currentTier;
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Upgrade tier</h1>
-        <p className="text-foreground/60">
-          Balance: {data.balance} USDT · Current: {data.currentTier?.name ?? "None"}
+        <p className="text-sm font-medium text-indigo-600">Packages</p>
+        <h1 className="text-2xl font-bold text-slate-900">
+          Choose your training tier
+        </h1>
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          Balance: {data.balance} USDT · Current:{" "}
+          {data.currentTier?.name ?? "No tier yet"}
         </p>
       </div>
 
-      <ul className="grid gap-4 md:grid-cols-2">
+      {!hasTier && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardTitle className="text-amber-950">Upgrade required</CardTitle>
+          <CardDescription className="mt-2 text-amber-800">
+            You can complete free training without a tier, but paid AI training
+            tasks unlock after choosing a package.
+          </CardDescription>
+        </Card>
+      )}
+
+      <ul className="grid gap-4">
         {data.allTiers.map((tier) => {
           const isCurrent = data.currentTier?.id === tier.id;
           const price = parseFloat(tier.upgradePriceUsdt);
@@ -28,10 +44,18 @@ export default async function TierPage() {
 
           return (
             <li key={tier.id}>
-              <Card>
-                <CardTitle>{tier.name}</CardTitle>
+              <Card className={isCurrent ? "border-indigo-300 bg-indigo-50" : ""}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <CardTitle>{tier.name}</CardTitle>
+                    <CardDescription className="mt-1">
+                      {tier.dailyQuestionLimit} paid task
+                      {tier.dailyQuestionLimit === 1 ? "" : "s"} per day
+                    </CardDescription>
+                  </div>
+                  <Badge>{isCurrent ? "Current" : `${tier.upgradePriceUsdt} USDT`}</Badge>
+                </div>
                 <CardDescription className="mt-2 space-y-1">
-                  <p>{tier.dailyQuestionLimit} questions / day</p>
                   <p>{tier.usdtPerQuestion} USDT per correct answer</p>
                   <p>Upgrade: {tier.upgradePriceUsdt} USDT</p>
                   {tier.requiredReferralCount > 0 && (
@@ -45,7 +69,9 @@ export default async function TierPage() {
                   )}
                 </CardDescription>
                 {isCurrent ? (
-                  <p className="mt-4 text-sm font-medium">Current tier</p>
+                  <p className="mt-4 text-sm font-semibold text-indigo-700">
+                    You are currently on this tier.
+                  </p>
                 ) : (
                   <form
                     action={async () => {
@@ -56,13 +82,18 @@ export default async function TierPage() {
                   >
                     <Button
                       type="submit"
+                      className="w-full"
                       disabled={!canUpgrade}
                     >
                       {!hasReferrals
                         ? "Need referrals"
+                        : !canAfford
+                          ? "Insufficient balance"
                         : price === 0
-                          ? "Switch"
-                          : "Upgrade"}
+                          ? "Choose tier"
+                          : hasTier
+                            ? "Upgrade"
+                            : "Choose tier"}
                     </Button>
                   </form>
                 )}

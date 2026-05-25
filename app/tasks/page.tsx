@@ -14,6 +14,7 @@ export default async function TasksPage() {
   const quota = session?.user?.id
     ? await canAnswerTaskToday(session.user.id)
     : null;
+  const hasPaidTier = !!quota?.tierName;
   const activeTasks = session?.user?.id
     ? await getWeeklyRandomTaskSuggestions(session.user.id)
     : await db.query.tasks.findMany({
@@ -30,14 +31,27 @@ export default async function TasksPage() {
         </p>
         {quota && (
           <p className="mt-1 text-sm text-[var(--muted)]">
-            {quota.tierName}: {quota.rewardUsdt} USDT per question ·{" "}
-            {quota.used}/{quota.limit} used today
+            {hasPaidTier
+              ? `${quota.tierName}: ${quota.rewardUsdt} USDT per question · ${quota.used}/${quota.limit} used today`
+              : "No tier yet: upgrade to unlock paid training tasks"}
             {quota.nextAvailableAt
               ? ` · next unlock ${new Date(quota.nextAvailableAt).toLocaleString()}`
               : ""}
           </p>
         )}
       </div>
+      {quota && !hasPaidTier && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardTitle className="text-amber-950">Paid tasks are locked</CardTitle>
+          <CardDescription className="mt-1 text-amber-800">
+            Free training is still available. Choose a tier to start paid AI
+            training tasks.
+          </CardDescription>
+          <Link href="/tier" className="mt-3 inline-block">
+            <Button>View tiers</Button>
+          </Link>
+        </Card>
+      )}
       {activeTasks.length === 0 ? (
         <Card>
           <CardTitle>No active training tasks are live yet</CardTitle>

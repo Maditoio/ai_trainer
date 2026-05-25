@@ -42,6 +42,7 @@ export const ledgerTypeEnum = pgEnum("ledger_type", [
   "adjustment",
   "withdrawal",
   "crypto_deposit",
+  "referral_commission",
 ]);
 
 export const withdrawalStatusEnum = pgEnum("withdrawal_status", [
@@ -88,6 +89,9 @@ export const users = pgTable("users", {
     (): AnyPgColumn => users.id,
   ),
   freeTrainingCompletedAt: timestamp("free_training_completed_at", {
+    withTimezone: true,
+  }),
+  referralCommissionPaidAt: timestamp("referral_commission_paid_at", {
     withTimezone: true,
   }),
   createdAt: timestamp("created_at", { withTimezone: true })

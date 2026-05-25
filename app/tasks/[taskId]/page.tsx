@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { asc, eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
@@ -44,8 +45,9 @@ export default async function TaskDetailPage({
         <h1 className="text-2xl font-bold">{task.title}</h1>
         <p className="text-foreground/60">{task.description}</p>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          {quota.tierName}: {quota.rewardUsdt} USDT per correct answer ·{" "}
-          {quota.used}/{quota.limit} used today
+          {quota.tierName
+            ? `${quota.tierName}: ${quota.rewardUsdt} USDT per correct answer · ${quota.used}/${quota.limit} used today`
+            : "No tier yet: upgrade to unlock paid training tasks"}
         </p>
       </div>
 
@@ -60,6 +62,14 @@ export default async function TaskDetailPage({
                 ).toLocaleString()}.`
               : ""}
           </CardDescription>
+          {!quota.tierName && (
+            <Link
+              href="/tier"
+              className="mt-3 inline-flex text-sm font-semibold text-indigo-600"
+            >
+              View tiers
+            </Link>
+          )}
         </Card>
       ) : completed ? (
         <Card>

@@ -4,7 +4,6 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { freeTrainingProgress, users } from "@/lib/db/schema";
 import {
-  getDefaultTierId,
   hashPassword,
   signIn,
 } from "@/lib/auth";
@@ -28,7 +27,6 @@ export async function registerAction(formData: FormData): Promise<void> {
     throw new Error("Email already registered");
   }
 
-  const defaultTierId = await getDefaultTierId();
   const passwordHash = await hashPassword(password);
   const referrer = referralCode
     ? await db.query.users.findFirst({
@@ -42,7 +40,6 @@ export async function registerAction(formData: FormData): Promise<void> {
       email,
       passwordHash,
       name,
-      currentTierId: defaultTierId,
       referredByUserId: referrer?.id ?? null,
       role:
         process.env.ADMIN_EMAIL?.toLowerCase() === email ? "admin" : "user",

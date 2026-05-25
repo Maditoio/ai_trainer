@@ -32,7 +32,8 @@ export default async function DashboardPage() {
 
   const canTrainToday = quota.allowed;
   const rewardUsdt = quota.rewardUsdt ?? "0";
-  const tierName = quota.tierName ?? "Current";
+  const tierName = quota.tierName ?? "No tier yet";
+  const hasPaidTier = !!quota.tierName;
 
   return (
     <div className="space-y-6">
@@ -77,7 +78,9 @@ export default async function DashboardPage() {
             {quota.used}/{quota.limit}
           </p>
           <CardDescription>
-            {canTrainToday
+            {!hasPaidTier
+              ? "Choose a tier to unlock paid tasks"
+              : canTrainToday
               ? `Ready to train on ${tierName}`
               : quota.nextAvailableAt
                 ? `Unlocks ${new Date(quota.nextAvailableAt).toLocaleTimeString()}`
@@ -85,6 +88,19 @@ export default async function DashboardPage() {
           </CardDescription>
         </Card>
       </div>
+
+      {!hasPaidTier && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardTitle className="text-amber-950">Choose a tier to train</CardTitle>
+          <CardDescription className="mt-1 text-amber-800">
+            Your account can complete free training now. Paid AI training tasks
+            unlock after you upgrade to a package.
+          </CardDescription>
+          <Link href="/tier" className="mt-3 inline-block">
+            <Button className="w-full sm:w-auto">View tiers</Button>
+          </Link>
+        </Card>
+      )}
 
       <Card>
         <CardTitle>Accuracy score</CardTitle>

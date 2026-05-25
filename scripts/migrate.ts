@@ -28,6 +28,15 @@ async function migrate() {
           AND column_name = 'referral_code'
       ) AS exists`,
     );
+    const { rows: commissionRows } = await client.query<{ exists: boolean }>(
+      `SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'users'
+          AND column_name = 'referral_commission_paid_at'
+      ) AS exists`,
+    );
 
     if (!rows[0]?.regclass) {
       console.log("Applying all migrations from drizzle/*.sql …");
@@ -43,6 +52,11 @@ async function migrate() {
     if (!referralRows[0]?.exists) {
       console.log("Applying drizzle/0002_categories_referrals.sql …");
       await applySqlMigrations(client, (f) => f.includes("0002"));
+    }
+
+    if (!commissionRows[0]?.exists) {
+      console.log("Applying drizzle/0003_referral_upgrade_commission.sql …");
+      await applySqlMigrations(client, (f) => f.includes("0003"));
       return;
     }
 

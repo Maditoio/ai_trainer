@@ -37,6 +37,10 @@ export async function upgradeTier(tierId: string): Promise<void> {
     where: eq(tiers.id, tierId),
   });
   if (!targetTier) throw new Error("Tier not found");
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+  });
+  if (!user) throw new Error("User not found");
 
   const referralEligibility = await getTierReferralEligibility(
     userId,
@@ -62,6 +66,12 @@ export async function upgradeTier(tierId: string): Promise<void> {
   }
 
   const price = parseFloat(targetTier.upgradePriceUsdt);
+  const shouldPayReferralCommission =
+    price > 0 && !!user.referredByUserId && !user.referralCommissionPaidAt;
+  const referralCommission = shouldPayReferralCommission
+    ? Number((price * 0.03).toFixed(8))
+    : 0;
+
   if (price > 0) {
     const balance = parseFloat(await getWalletBalance(userId));
     if (balance < price) {
@@ -76,9 +86,29 @@ export async function upgradeTier(tierId: string): Promise<void> {
     });
   }
 
+  if (shouldPayReferralCommission && user.referredByUserId && referralCommission > 0) {
+    await applyLedgerEntry({
+      userId: user.referredByUserId,
+      type: "referral_commission",
+      amount: referralCommission.toFixed(8),
+      metadata: {
+        referredUserId: user.id,
+        tierId: targetTier.id,
+        tierName: targetTier.name,
+        upgradeAmountUsdt: targetTier.upgradePriceUsdt,
+        commissionRate: "0.03",
+      },
+    });
+  }
+
   await db
     .update(users)
-    .set({ currentTierId: targetTier.id })
+    .set({
+      currentTierId: targetTier.id,
+      referralCommissionPaidAt: shouldPayReferralCommission
+        ? new Date()
+        : user.referralCommissionPaidAt,
+    })
     .where(eq(users.id, userId));
 
   revalidatePath("/tier");

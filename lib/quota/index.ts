@@ -13,9 +13,7 @@ export async function getUserTier(userId: string) {
       where: eq(tiers.id, user.currentTierId),
     });
   }
-  return db.query.tiers.findFirst({
-    where: eq(tiers.isDefault, true),
-  });
+  return null;
 }
 
 export async function getDailyUsageCount(userId: string): Promise<number> {
@@ -61,7 +59,7 @@ export async function canAnswerTaskToday(userId: string): Promise<{
       allowed: false,
       used: 0,
       limit: 0,
-      reason: "No tier assigned. Please contact support.",
+      reason: "Upgrade to a tier before starting paid training tasks.",
     };
   }
   const used = await getDailyUsageCount(userId);

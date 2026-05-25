@@ -15,7 +15,20 @@ import {
 } from "@/lib/quota";
 import { applyLedgerEntry } from "@/lib/wallet/ledger";
 
-export async function submitTaskAnswer(questionId: string, answer: string) {
+export type TaskTrainingPayload = {
+  aiSuggestedAnswer: string;
+  aiSuggestedLabel: string;
+  userMarkedAiCorrect: boolean;
+  correctedAnswer?: string;
+  correctedLabel?: string;
+  finalAnswer: string;
+  finalLabel: string;
+};
+
+export async function submitTaskAnswer(
+  questionId: string,
+  answer: string | TaskTrainingPayload,
+) {
   const session = await auth();
   if (!session?.user?.id) return { error: "Unauthorized" };
 
@@ -47,13 +60,27 @@ export async function submitTaskAnswer(questionId: string, answer: string) {
   const tier = await getUserTier(userId);
   if (!tier) return { error: "No tier assigned" };
 
-  const isCorrect = gradeQuestion(question, answer);
+  const finalAnswer = typeof answer === "string" ? answer : answer.finalAnswer;
+  const answerJson =
+    typeof answer === "string"
+      ? { answer }
+      : {
+          aiSuggestedAnswer: answer.aiSuggestedAnswer,
+          aiSuggestedLabel: answer.aiSuggestedLabel,
+          userMarkedAiCorrect: answer.userMarkedAiCorrect,
+          correctedAnswer: answer.correctedAnswer ?? null,
+          correctedLabel: answer.correctedLabel ?? null,
+          finalAnswer: answer.finalAnswer,
+          finalLabel: answer.finalLabel,
+        };
+
+  const isCorrect = gradeQuestion(question, finalAnswer);
   const rewardUsdt = isCorrect ? tier.usdtPerQuestion : "0";
 
   await db.insert(submissions).values({
     userId,
     questionId,
-    answerJson: { answer },
+    answerJson,
     status: isCorrect ? "correct" : "incorrect",
     rewardUsdt,
   });

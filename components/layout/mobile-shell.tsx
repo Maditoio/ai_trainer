@@ -4,6 +4,7 @@ import {
   Brain,
   History,
   Home,
+  Layers,
   LogOut,
   Shield,
   Wallet,
@@ -12,6 +13,7 @@ import {
 const userNav = [
   { href: "/dashboard", label: "Home", icon: Home },
   { href: "/tasks", label: "Train", icon: Brain },
+  { href: "/tier", label: "Tiers", icon: Layers },
   { href: "/history", label: "History", icon: History },
   { href: "/wallet", label: "Wallet", icon: Wallet },
 ];
