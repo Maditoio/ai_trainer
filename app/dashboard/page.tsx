@@ -155,8 +155,7 @@ export default async function DashboardPage() {
           <Card>
             <CardTitle>No active training tasks are live yet</CardTitle>
             <CardDescription className="mt-1">
-              An admin needs to create a task, add questions, and set it to Active
-              before users can train.
+              Waiting for partners to issue tasks before eligible users can train.
             </CardDescription>
           </Card>
         ) : (

@@ -47,7 +47,7 @@ Web platform for AI training tasks with tiered platform rewards, internal wallet
 
 - **Free training**: 3 questions, 1/day, 1 USDT bonus on completion
 - **Tasks**: Admin-created image label / multiple choice questions. Draft tasks are hidden from users.
-- **Tiers**: Daily limits and exact per-question USDT rewards; tiers with more than one daily task wait 6 hours between paid answers.
+- **Tiers**: Daily limits and exact per-question USDT rewards; tiers with more than one daily task wait 4 hours between paid answers.
 - **Wallet**: NOWPayments USDT Polygon deposits, internal ledger, and withdrawal requests.
 
 Platform balances are not on-chain cryptocurrency until integrated later.

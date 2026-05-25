@@ -25,12 +25,8 @@ export default async function TasksPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Tasks</h1>
-        <p className="text-sm text-[var(--muted)]">
-          Random suggestions refresh weekly and avoid tasks you already answered
-          this week.
-        </p>
         {quota && (
-          <p className="mt-1 text-sm text-[var(--muted)]">
+          <p className="text-sm text-[var(--muted)]">
             {hasPaidTier
               ? `${quota.tierName}: ${quota.rewardUsdt} USDT per question · ${quota.used}/${quota.limit} used today`
               : "No tier yet: upgrade to unlock paid training tasks"}
@@ -56,8 +52,7 @@ export default async function TasksPage() {
         <Card>
           <CardTitle>No active training tasks are live yet</CardTitle>
           <CardDescription className="mt-1">
-            An admin must create a task, add questions, and set it to Active
-            before it appears here.
+            Waiting for partners to issue tasks before eligible users can train.
           </CardDescription>
         </Card>
       ) : (

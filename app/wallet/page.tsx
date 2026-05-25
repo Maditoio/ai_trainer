@@ -54,7 +54,7 @@ export default async function WalletPage() {
         <CardDescription className="text-emerald-800">
           Earn {tier?.usdtPerQuestion ?? "0"} USDT per completed training
           question, up to {tier?.dailyQuestionLimit ?? 0} per day. Packages with
-          more than one daily question wait 6 hours between answers.
+          more than one daily question wait 4 hours between answers.
         </CardDescription>
         <Link href="/tasks" className="mt-3 inline-block">
           <Button variant="accent" className="text-sm">

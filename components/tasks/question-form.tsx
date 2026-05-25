@@ -41,16 +41,16 @@ export function QuestionForm({ question, mode }: Props) {
 
   async function runProgressSequence() {
     const steps = [
-      "Analyzing answer",
       "Training AI",
-      "Updating AI database",
+      "Synchronizing with partner database",
+      "Updating models",
       "Training completed",
     ];
 
     for (const [index, step] of steps.entries()) {
       setProgressStep(index + 1);
       setProgressText(step);
-      await new Promise((resolve) => setTimeout(resolve, 7500));
+      await new Promise((resolve) => setTimeout(resolve, 3750));
     }
   }
 
