@@ -132,7 +132,10 @@ export function QuestionForm({ question, mode }: Props) {
     setProgressStep(0);
 
     try {
-      const resultPromise = submitTaskAnswer(question.id, payload);
+      const resultPromise =
+        mode === "free-training"
+          ? submitFreeTrainingAnswer(question.id, payload.finalAnswer)
+          : submitTaskAnswer(question.id, payload);
       await runProgressSequence();
       const result = await resultPromise;
 
@@ -159,7 +162,7 @@ export function QuestionForm({ question, mode }: Props) {
     }
   }
 
-  if (mode === "task") {
+  if (mode === "task" || mode === "free-training") {
     if (completionMessage) {
       return (
         <Card className="border-emerald-200 bg-emerald-50">

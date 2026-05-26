@@ -8,6 +8,14 @@ import { canAnswerTaskToday, hasSubmittedQuestion } from "@/lib/quota";
 import { QuestionForm } from "@/components/tasks/question-form";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 
+function formatRemaining(ms?: number) {
+  if (!ms || ms <= 0) return "";
+  const totalMinutes = Math.ceil(ms / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours}h ${minutes}m`;
+}
+
 export default async function TaskDetailPage({
   params,
 }: {
@@ -56,10 +64,8 @@ export default async function TaskDetailPage({
           <CardTitle>Training locked for now</CardTitle>
           <CardDescription className="mt-2">
             {quota.reason}
-            {quota.nextAvailableAt
-              ? ` You can train again at ${new Date(
-                  quota.nextAvailableAt,
-                ).toLocaleString()}.`
+            {quota.cooldownRemainingMs
+              ? ` Next task in ${formatRemaining(quota.cooldownRemainingMs)}.`
               : ""}
           </CardDescription>
           {!quota.tierName && (

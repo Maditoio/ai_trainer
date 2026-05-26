@@ -94,6 +94,18 @@ export const users = pgTable("users", {
   referralCommissionPaidAt: timestamp("referral_commission_paid_at", {
     withTimezone: true,
   }),
+  withdrawalFeePercent: numeric("withdrawal_fee_percent", {
+    precision: 8,
+    scale: 4,
+  })
+    .notNull()
+    .default("0"),
+  minimumWithdrawalAmount: numeric("minimum_withdrawal_amount", {
+    precision: 18,
+    scale: 8,
+  })
+    .notNull()
+    .default("0"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -237,6 +249,15 @@ export const withdrawalRequests = pgTable("withdrawal_requests", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   amount: numeric("amount", { precision: 18, scale: 8 }).notNull(),
+  feePercent: numeric("fee_percent", { precision: 8, scale: 4 })
+    .notNull()
+    .default("0"),
+  feeAmount: numeric("fee_amount", { precision: 18, scale: 8 })
+    .notNull()
+    .default("0"),
+  netAmount: numeric("net_amount", { precision: 18, scale: 8 })
+    .notNull()
+    .default("0"),
   polygonAddress: text("polygon_address").notNull(),
   status: withdrawalStatusEnum("status").notNull().default("pending"),
   adminNote: text("admin_note"),

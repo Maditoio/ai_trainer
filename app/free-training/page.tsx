@@ -23,7 +23,7 @@ export default async function FreeTrainingPage() {
         <h1 className="text-2xl font-bold">Free training</h1>
         <p className="text-foreground/60">
           Progress: {state.progress?.questionsAnswered ?? 0} / 3 — 1 question per
-          day. Complete all 3 to earn 1 USDT.
+          day. Earn 1 USDT for each completed training day.
         </p>
       </div>
 

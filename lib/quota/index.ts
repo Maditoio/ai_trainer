@@ -82,9 +82,9 @@ export async function canAnswerTaskToday(userId: string): Promise<{
   if (limit > 1) {
     const lastPaidSubmission = await getLastPaidSubmission(userId);
     if (lastPaidSubmission?.createdAt) {
-      const nextAvailable = new Date(lastPaidSubmission.createdAt);
-      nextAvailable.setHours(
-        nextAvailable.getHours() + PAID_TASK_COOLDOWN_HOURS,
+      const nextAvailable = new Date(
+        new Date(lastPaidSubmission.createdAt).getTime() +
+          PAID_TASK_COOLDOWN_HOURS * 60 * 60 * 1000,
       );
 
       const cooldownRemainingMs = nextAvailable.getTime() - Date.now();
@@ -94,7 +94,7 @@ export async function canAnswerTaskToday(userId: string): Promise<{
           allowed: false,
           nextAvailableAt: nextAvailable.toISOString(),
           cooldownRemainingMs,
-          reason: `Your ${tier.name} package has a ${PAID_TASK_COOLDOWN_HOURS}-hour wait between training questions. Next question unlocks at ${nextAvailable.toLocaleString()}.`,
+          reason: `Your ${tier.name} package has a ${PAID_TASK_COOLDOWN_HOURS}-hour wait between training questions.`,
         };
       }
     }

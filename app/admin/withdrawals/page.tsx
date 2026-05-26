@@ -32,6 +32,10 @@ export default async function AdminWithdrawalsPage() {
                 <CardTitle className="text-base">
                   {w.amount} USDT — {w.email}
                 </CardTitle>
+                <p className="mt-1 text-sm text-slate-700">
+                  Fee: {w.feeAmount} USDT ({w.feePercent}%) · Send:{" "}
+                  <strong>{w.netAmount} USDT</strong>
+                </p>
                 <p className="mt-1 break-all font-mono text-xs text-[var(--muted)]">
                   {w.polygonAddress}
                 </p>

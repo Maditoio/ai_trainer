@@ -14,6 +14,14 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Brain, Coins, Sparkles, Wallet } from "lucide-react";
 
+function formatRemaining(ms?: number) {
+  if (!ms || ms <= 0) return "";
+  const totalMinutes = Math.ceil(ms / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours}h ${minutes}m`;
+}
+
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
@@ -82,8 +90,8 @@ export default async function DashboardPage() {
               ? "Choose a tier to unlock paid tasks"
               : canTrainToday
               ? `Ready to train on ${tierName}`
-              : quota.nextAvailableAt
-                ? `Unlocks ${new Date(quota.nextAvailableAt).toLocaleTimeString()}`
+              : quota.cooldownRemainingMs
+                ? `Next task in ${formatRemaining(quota.cooldownRemainingMs)}`
                 : "Come back tomorrow"}
           </CardDescription>
         </Card>

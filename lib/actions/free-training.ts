@@ -10,13 +10,11 @@ import {
   submissions,
   users,
 } from "@/lib/db/schema";
+import { FREE_TRAINING_BONUS_USDT, FREE_TRAINING_TOTAL_QUESTIONS } from "@/lib/constants";
 import { gradeQuestion } from "@/lib/grading";
 import { hasSubmittedQuestion } from "@/lib/quota";
 import { todayUtc } from "@/lib/utils";
 import { applyLedgerEntry } from "@/lib/wallet/ledger";
-
-const FREE_TRAINING_TOTAL = 3;
-const FREE_TRAINING_BONUS = "1.00000000";
 
 export async function submitFreeTrainingAnswer(questionId: string, answer: string) {
   const session = await auth();
@@ -37,7 +35,7 @@ export async function submitFreeTrainingAnswer(questionId: string, answer: strin
     return { error: "Progress not found" };
   }
 
-  if (progress.questionsAnswered >= FREE_TRAINING_TOTAL) {
+  if (progress.questionsAnswered >= FREE_TRAINING_TOTAL_QUESTIONS) {
     return { error: "Free training already completed" };
   }
 
@@ -64,7 +62,7 @@ export async function submitFreeTrainingAnswer(questionId: string, answer: strin
     questionId,
     answerJson: { answer },
     status: isCorrect ? "correct" : "incorrect",
-    rewardUsdt: "0",
+    rewardUsdt: isCorrect ? FREE_TRAINING_BONUS_USDT : "0",
   });
 
   if (!isCorrect) {
@@ -73,7 +71,7 @@ export async function submitFreeTrainingAnswer(questionId: string, answer: strin
   }
 
   const newCount = progress.questionsAnswered + 1;
-  const completed = newCount >= FREE_TRAINING_TOTAL;
+  const completed = newCount >= FREE_TRAINING_TOTAL_QUESTIONS;
 
   await db
     .update(freeTrainingProgress)
@@ -83,18 +81,18 @@ export async function submitFreeTrainingAnswer(questionId: string, answer: strin
     })
     .where(eq(freeTrainingProgress.userId, userId));
 
+  await applyLedgerEntry({
+    userId,
+    type: "free_training_bonus",
+    amount: FREE_TRAINING_BONUS_USDT,
+    metadata: { reason: "free_training_daily", questionId },
+  });
+
   if (completed) {
     await db
       .update(users)
       .set({ freeTrainingCompletedAt: new Date() })
       .where(eq(users.id, userId));
-
-    await applyLedgerEntry({
-      userId,
-      type: "free_training_bonus",
-      amount: FREE_TRAINING_BONUS,
-      metadata: { reason: "free_training_complete" },
-    });
   }
 
   revalidatePath("/free-training");
@@ -105,7 +103,8 @@ export async function submitFreeTrainingAnswer(questionId: string, answer: strin
     correct: true,
     completed,
     questionsAnswered: newCount,
-    total: FREE_TRAINING_TOTAL,
+    reward: FREE_TRAINING_BONUS_USDT,
+    total: FREE_TRAINING_TOTAL_QUESTIONS,
   };
 }
 
@@ -136,7 +135,7 @@ export async function getFreeTrainingState() {
   const canAnswerToday =
     !user?.freeTrainingCompletedAt &&
     progress &&
-    progress.questionsAnswered < FREE_TRAINING_TOTAL &&
+    progress.questionsAnswered < FREE_TRAINING_TOTAL_QUESTIONS &&
     progress.lastAnsweredDate !== today;
 
   const nextQuestion = freeQuestions.find((q) => !answeredIds.has(q.id));

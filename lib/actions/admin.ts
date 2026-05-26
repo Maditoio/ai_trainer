@@ -17,6 +17,7 @@ import {
   users,
   wallets,
 } from "@/lib/db/schema";
+import { parseAmount } from "@/lib/utils";
 
 async function requireAdmin() {
   const session = await auth();
@@ -168,6 +169,36 @@ export async function getAdminUsers() {
     result.push({ ...u, balance: wallet?.balanceUsdt ?? "0" });
   }
   return result;
+}
+
+export async function updateUserWithdrawalSettings(
+  userId: string,
+  formData: FormData,
+): Promise<void> {
+  await requireAdmin();
+
+  const feePercent = Number(formData.get("withdrawalFeePercent") ?? 0);
+  const minimumWithdrawalAmount = parseAmount(
+    String(formData.get("minimumWithdrawalAmount") ?? "0"),
+  );
+
+  if (Number.isNaN(feePercent) || feePercent < 0 || feePercent > 100) {
+    throw new Error("Withdrawal fee must be between 0 and 100 percent");
+  }
+
+  if (parseFloat(minimumWithdrawalAmount) < 0) {
+    throw new Error("Minimum withdrawal cannot be negative");
+  }
+
+  await db
+    .update(users)
+    .set({
+      withdrawalFeePercent: feePercent.toFixed(4),
+      minimumWithdrawalAmount,
+    })
+    .where(eq(users.id, userId));
+
+  revalidatePath("/admin/users");
 }
 
 export async function getPendingDeposits() {

@@ -9,6 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 
+function formatRemaining(ms?: number) {
+  if (!ms || ms <= 0) return "";
+  const totalMinutes = Math.ceil(ms / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours}h ${minutes}m`;
+}
+
 export default async function TasksPage() {
   const session = await auth();
   const quota = session?.user?.id
@@ -30,8 +38,8 @@ export default async function TasksPage() {
             {hasPaidTier
               ? `${quota.tierName}: ${quota.rewardUsdt} USDT per question · ${quota.used}/${quota.limit} used today`
               : "No tier yet: upgrade to unlock paid training tasks"}
-            {quota.nextAvailableAt
-              ? ` · next unlock ${new Date(quota.nextAvailableAt).toLocaleString()}`
+            {quota.cooldownRemainingMs
+              ? ` · next task in ${formatRemaining(quota.cooldownRemainingMs)}`
               : ""}
           </p>
         )}
