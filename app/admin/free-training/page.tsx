@@ -4,7 +4,6 @@ import { deleteQuestion } from "@/lib/actions/admin";
 import { db } from "@/lib/db";
 import { questions } from "@/lib/db/schema";
 import { getQuestionOptions } from "@/lib/grading";
-import { AddQuestionForm } from "@/components/admin/add-question-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 
@@ -13,11 +12,6 @@ export default async function AdminFreeTrainingPage() {
     where: eq(questions.isFreeTraining, true),
     orderBy: [asc(questions.sortOrder)],
   });
-
-  const nextSortOrder =
-    freeQuestions.length > 0
-      ? Math.max(...freeQuestions.map((q) => q.sortOrder)) + 1
-      : 0;
 
   return (
     <div className="space-y-8">
@@ -30,29 +24,29 @@ export default async function AdminFreeTrainingPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold">Free training</h1>
         <p className="mt-1 max-w-xl text-sm text-foreground/60">
-          Onboarding quiz: users answer 3 questions (1 per day) and earn 1 USDT.
-          Keep exactly 3 questions for the intended flow.
+          Daily training now uses questions from active user tasks. Users can
+          complete 3 training days, with 1 question and 1 USDT per day.
         </p>
       </div>
 
       <Card className="max-w-xl">
-        <CardTitle>Add free training question</CardTitle>
+        <CardTitle>Training source</CardTitle>
         <CardDescription className="mt-1">
-          Quiz only — no images. Users see these at /free-training.
+          Add and activate tasks from the Tasks admin area. Daily training pulls
+          random questions from those same active tasks.
         </CardDescription>
-        <div className="mt-4">
-          <AddQuestionForm
-            isFreeTraining
-            taskType="multiple_choice"
-            nextSortOrder={nextSortOrder}
-          />
-        </div>
+        <Link href="/admin/tasks" className="mt-4 inline-block">
+          <Button>Manage tasks</Button>
+        </Link>
       </Card>
 
       <section>
         <h2 className="mb-3 text-lg font-semibold">
-          Questions ({freeQuestions.length} / 3 recommended)
+          Legacy training questions ({freeQuestions.length})
         </h2>
+        <p className="mb-3 text-sm text-foreground/60">
+          These older standalone questions are no longer shown to users.
+        </p>
         <ul className="space-y-3">
           {freeQuestions.map((q, index) => {
             const options = getQuestionOptions(q);

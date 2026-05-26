@@ -70,8 +70,9 @@ export async function submitTaskAnswer(
   const finalAnswer = typeof answer === "string" ? answer : answer.finalAnswer;
   const answerJson =
     typeof answer === "string"
-      ? { answer }
+      ? { mode: "paid_task", answer }
       : {
+          mode: "paid_task",
           aiSuggestedAnswer: answer.aiSuggestedAnswer,
           aiSuggestedLabel: answer.aiSuggestedLabel,
           userMarkedAiCorrect: answer.userMarkedAiCorrect,

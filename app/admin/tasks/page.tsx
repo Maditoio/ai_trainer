@@ -54,9 +54,9 @@ export default async function AdminTasksPage() {
         </ol>
         <p className="mt-3 text-sm">
           <Link href="/admin/free-training" className="underline">
-            Free training questions
+            Free training
           </Link>{" "}
-          are separate (onboarding, 3 questions, 1 USDT bonus).
+          now uses questions from active tasks for 3 daily training rewards.
         </p>
       </Card>
 

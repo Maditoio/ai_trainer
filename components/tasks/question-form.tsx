@@ -27,7 +27,7 @@ export function QuestionForm({ question, mode }: Props) {
   const [completionMessage, setCompletionMessage] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   const options = getQuestionOptions(question);
-  const aiSuggestion = mode === "task" ? getAiSuggestion(question.id, options) : null;
+  const aiSuggestion = getAiSuggestion(question.id, options);
   const correctionOptions =
     aiSuggestion && options.length > 1
       ? options.filter((option) => option.id !== aiSuggestion.id)
@@ -88,8 +88,8 @@ export function QuestionForm({ question, mode }: Props) {
               ).toLocaleString()}.`
             : "";
         setMessage(
-          mode === "free-training" && "completed" in result && result.completed
-            ? "Correct! Free training complete — 1 USDT credited."
+          mode === "free-training"
+            ? `Daily training completed.${reward}`
             : `Correct!${reward}${next}`,
         );
       } else {
@@ -147,14 +147,15 @@ export function QuestionForm({ question, mode }: Props) {
         return;
       }
 
-      const reward =
-        result.correct && "reward" in result && result.reward
-          ? `Reward: ${result.reward} USDT`
-          : "";
+      const reward = "reward" in result && result.reward
+        ? `Reward: ${result.reward} USDT`
+        : "";
       setCompletionMessage(
-        result.correct
-          ? `Your training task was submitted successfully.${reward ? ` ${reward}.` : ""}`
-          : "Your training feedback was submitted successfully.",
+        mode === "free-training"
+          ? `Daily training completed successfully.${reward ? ` ${reward}.` : ""}`
+          : result.correct
+            ? `Your training task was submitted successfully.${reward ? ` ${reward}.` : ""}`
+            : "Your training feedback was submitted successfully.",
       );
       setAiVerdict(null);
       setCorrectedOptionId("");

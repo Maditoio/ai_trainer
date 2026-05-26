@@ -142,14 +142,17 @@ export async function hasSubmittedQuestionThisWeek(
   userId: string,
   questionId: string,
 ): Promise<boolean> {
-  const existing = await db.query.submissions.findFirst({
+  const recentSubmissions = await db.query.submissions.findMany({
     where: and(
       eq(submissions.userId, userId),
       eq(submissions.questionId, questionId),
       gte(submissions.createdAt, startOfWeekUtc()),
     ),
   });
-  return !!existing;
+  return recentSubmissions.some((submission) => {
+    const answerJson = submission.answerJson as { mode?: string } | null;
+    return answerJson?.mode !== "free_training";
+  });
 }
 
 export async function hasSubmittedTaskThisWeek(

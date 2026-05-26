@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCryptoDepositHistory } from "@/lib/actions/crypto";
 import { getWithdrawalHistory } from "@/lib/actions/withdrawals";
-import { getWalletBalance } from "@/lib/wallet/ledger";
+import { getRecentWalletLedgerEntries, getWalletBalance } from "@/lib/wallet/ledger";
 import { auth } from "@/lib/auth";
 import { getUserTier } from "@/lib/quota";
 import { DepositForm } from "@/components/wallet/deposit-form";
@@ -19,6 +19,7 @@ export default async function WalletPage() {
   const tier = await getUserTier(session.user.id);
   const cryptoDeposits = await getCryptoDepositHistory();
   const withdrawals = await getWithdrawalHistory();
+  const rewards = await getRecentWalletLedgerEntries(session.user.id, 3);
 
   return (
     <div className="space-y-6">
@@ -75,6 +76,28 @@ export default async function WalletPage() {
           </Link>
         </div>
         <ul className="space-y-2">
+          {rewards.map((entry) => (
+            <li key={entry.id}>
+              <Card className="flex items-center justify-between py-3">
+                <div>
+                  <p className="text-sm font-medium">
+                    {entry.type === "free_training_bonus"
+                      ? "Daily training reward"
+                      : "Task reward"}
+                  </p>
+                  <p className="text-xs text-[var(--muted)]">
+                    {entry.createdAt?.toLocaleString()}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-emerald-600">
+                    +{entry.amount} USDT
+                  </p>
+                  <Badge className="bg-emerald-100 text-emerald-700">Credited</Badge>
+                </div>
+              </Card>
+            </li>
+          ))}
           {cryptoDeposits.slice(0, 3).map((d) => (
             <li key={d.id}>
               <Card className="flex items-center justify-between py-3">
@@ -115,7 +138,7 @@ export default async function WalletPage() {
               </Card>
             </li>
           ))}
-          {cryptoDeposits.length === 0 && withdrawals.length === 0 && (
+          {rewards.length === 0 && cryptoDeposits.length === 0 && withdrawals.length === 0 && (
             <p className="text-sm text-[var(--muted)]">No activity yet.</p>
           )}
         </ul>

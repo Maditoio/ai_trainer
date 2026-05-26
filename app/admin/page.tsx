@@ -4,7 +4,7 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 const links = [
   { href: "/admin/tiers", title: "Tiers", desc: "Manage tier limits and rewards" },
   { href: "/admin/tasks", title: "Tasks", desc: "Create tasks, add questions, go live" },
-  { href: "/admin/free-training", title: "Free training", desc: "Onboarding quiz (3 questions)" },
+  { href: "/admin/free-training", title: "Free training", desc: "3 days using active tasks" },
   { href: "/admin/deposits", title: "Deposits", desc: "Legacy manual deposit requests" },
   {
     href: "/admin/withdrawals",

@@ -15,7 +15,6 @@ export default async function HistoryPage() {
     : { correct: 0, wrong: 0, total: 0, accuracy: 0 };
 
   const totalEarned = history
-    .filter((h) => h.status === "correct")
     .reduce((sum, h) => sum + parseFloat(h.rewardUsdt), 0)
     .toFixed(2);
 
@@ -49,7 +48,7 @@ export default async function HistoryPage() {
         {history.map((item) => (
           <li key={item.id}>
             <Card className="flex gap-3">
-              {item.status === "correct" ? (
+              {parseFloat(item.rewardUsdt) > 0 ? (
                 <CheckCircle2 className="h-6 w-6 shrink-0 text-emerald-500" />
               ) : (
                 <XCircle className="h-6 w-6 shrink-0 text-slate-300" />
@@ -64,7 +63,7 @@ export default async function HistoryPage() {
                 </p>
               </div>
               <div className="text-right">
-                {item.status === "correct" ? (
+                {parseFloat(item.rewardUsdt) > 0 ? (
                   <p className="font-bold text-emerald-600">+{item.rewardUsdt}</p>
                 ) : (
                   <Badge className="bg-slate-100 text-slate-600">No reward</Badge>

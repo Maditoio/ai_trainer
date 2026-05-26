@@ -19,7 +19,7 @@ export async function getTaskEarningsHistory() {
     orderBy: [desc(ledgerEntries.createdAt)],
     limit: 200,
   });
-  const rewardsByQuestionId = new Map<string, string>();
+  const rewardsByQuestionId = new Map<string, typeof rewardEntries>();
   const unmatchedFreeTrainingRewards = rewardEntries.filter(
     (entry) => entry.type === "free_training_bonus",
   );
@@ -29,7 +29,9 @@ export async function getTaskEarningsHistory() {
       (entry.type === "task_reward" || entry.type === "free_training_bonus") &&
       metadata?.questionId
     ) {
-      rewardsByQuestionId.set(metadata.questionId, entry.amount);
+      const entries = rewardsByQuestionId.get(metadata.questionId) ?? [];
+      entries.push(entry);
+      rewardsByQuestionId.set(metadata.questionId, entries);
     }
   }
 
@@ -47,17 +49,20 @@ export async function getTaskEarningsHistory() {
       });
       if (task) taskTitle = task.title;
     }
-    const ledgerReward = rewardsByQuestionId.get(row.questionId);
+    const answerJson = row.answerJson as { mode?: string } | null;
+    const isDailyTraining =
+      answerJson?.mode === "free_training" || question?.isFreeTraining === true;
+    const ledgerReward = rewardsByQuestionId.get(row.questionId)?.shift()?.amount;
     const fallbackFreeTrainingReward =
-      question?.isFreeTraining && row.status === "correct" && row.rewardUsdt === "0.00000000"
+      isDailyTraining && parseFloat(row.rewardUsdt) === 0
         ? unmatchedFreeTrainingRewards.shift()?.amount
         : undefined;
     enriched.push({
       ...row,
       rewardUsdt: ledgerReward ?? fallbackFreeTrainingReward ?? row.rewardUsdt,
-      taskTitle,
+      taskTitle: isDailyTraining ? "Daily training" : taskTitle,
       questionPrompt: question?.prompt ?? "",
-      isFreeTraining: question?.isFreeTraining ?? false,
+      isFreeTraining: isDailyTraining,
     });
   }
   return enriched;

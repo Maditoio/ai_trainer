@@ -1,6 +1,6 @@
 "use server";
 
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -8,13 +8,20 @@ import {
   freeTrainingProgress,
   questions,
   submissions,
+  tasks,
   users,
 } from "@/lib/db/schema";
-import { FREE_TRAINING_BONUS_USDT, FREE_TRAINING_TOTAL_QUESTIONS } from "@/lib/constants";
+import {
+  FREE_TRAINING_BONUS_USDT,
+  FREE_TRAINING_TOTAL_QUESTIONS,
+} from "@/lib/constants";
 import { gradeQuestion } from "@/lib/grading";
-import { hasSubmittedQuestion } from "@/lib/quota";
 import { todayUtc } from "@/lib/utils";
 import { applyLedgerEntry } from "@/lib/wallet/ledger";
+
+function shuffle<T>(items: T[]) {
+  return [...items].sort(() => Math.random() - 0.5);
+}
 
 export async function submitFreeTrainingAnswer(questionId: string, answer: string) {
   const session = await auth();
@@ -25,7 +32,7 @@ export async function submitFreeTrainingAnswer(questionId: string, answer: strin
     where: eq(users.id, userId),
   });
   if (user?.freeTrainingCompletedAt) {
-    return { error: "Free training already completed" };
+    return { error: "Daily training already completed" };
   }
 
   const progress = await db.query.freeTrainingProgress.findFirst({
@@ -34,9 +41,8 @@ export async function submitFreeTrainingAnswer(questionId: string, answer: strin
   if (!progress) {
     return { error: "Progress not found" };
   }
-
   if (progress.questionsAnswered >= FREE_TRAINING_TOTAL_QUESTIONS) {
-    return { error: "Free training already completed" };
+    return { error: "Daily training already completed" };
   }
 
   const today = todayUtc();
@@ -45,30 +51,27 @@ export async function submitFreeTrainingAnswer(questionId: string, answer: strin
   }
 
   const question = await db.query.questions.findFirst({
-    where: and(
-      eq(questions.id, questionId),
-      eq(questions.isFreeTraining, true),
-    ),
+    where: eq(questions.id, questionId),
   });
   if (!question) return { error: "Question not found" };
-
-  if (await hasSubmittedQuestion(userId, questionId)) {
-    return { error: "Already submitted" };
+  if (question.isFreeTraining || !question.taskId) {
+    return { error: "Training question not found" };
+  }
+  const task = await db.query.tasks.findFirst({
+    where: eq(tasks.id, question.taskId),
+  });
+  if (!task || task.status !== "active") {
+    return { error: "Training task is not active" };
   }
 
   const isCorrect = gradeQuestion(question, answer);
   await db.insert(submissions).values({
     userId,
     questionId,
-    answerJson: { answer },
+    answerJson: { mode: "free_training", answer },
     status: isCorrect ? "correct" : "incorrect",
-    rewardUsdt: isCorrect ? FREE_TRAINING_BONUS_USDT : "0",
+    rewardUsdt: FREE_TRAINING_BONUS_USDT,
   });
-
-  if (!isCorrect) {
-    revalidatePath("/free-training");
-    return { success: true, correct: false };
-  }
 
   const newCount = progress.questionsAnswered + 1;
   const completed = newCount >= FREE_TRAINING_TOTAL_QUESTIONS;
@@ -81,13 +84,6 @@ export async function submitFreeTrainingAnswer(questionId: string, answer: strin
     })
     .where(eq(freeTrainingProgress.userId, userId));
 
-  await applyLedgerEntry({
-    userId,
-    type: "free_training_bonus",
-    amount: FREE_TRAINING_BONUS_USDT,
-    metadata: { reason: "free_training_daily", questionId },
-  });
-
   if (completed) {
     await db
       .update(users)
@@ -95,12 +91,19 @@ export async function submitFreeTrainingAnswer(questionId: string, answer: strin
       .where(eq(users.id, userId));
   }
 
+  await applyLedgerEntry({
+    userId,
+    type: "free_training_bonus",
+    amount: FREE_TRAINING_BONUS_USDT,
+    metadata: { reason: "free_training_daily", questionId },
+  });
+
   revalidatePath("/free-training");
   revalidatePath("/dashboard");
   revalidatePath("/wallet");
   return {
     success: true,
-    correct: true,
+    correct: isCorrect,
     completed,
     questionsAnswered: newCount,
     reward: FREE_TRAINING_BONUS_USDT,
@@ -119,33 +122,37 @@ export async function getFreeTrainingState() {
   const progress = await db.query.freeTrainingProgress.findFirst({
     where: eq(freeTrainingProgress.userId, userId),
   });
-  const freeQuestions = await db.query.questions.findMany({
-    where: eq(questions.isFreeTraining, true),
-    orderBy: [asc(questions.sortOrder)],
+  const activeTasks = await db.query.tasks.findMany({
+    where: eq(tasks.status, "active"),
+    orderBy: [asc(tasks.createdAt)],
   });
+  const activeTaskIds = activeTasks.map((task) => task.id);
+  const trainingQuestions =
+    activeTaskIds.length > 0
+      ? await db.query.questions.findMany({
+          where: and(
+            inArray(questions.taskId, activeTaskIds),
+            eq(questions.isFreeTraining, false),
+          ),
+          orderBy: [asc(questions.sortOrder)],
+        })
+      : [];
 
-  const answeredIds = new Set<string>();
-  for (const q of freeQuestions) {
-    if (await hasSubmittedQuestion(userId, q.id)) {
-      answeredIds.add(q.id);
-    }
-  }
+  const nextQuestion = shuffle(trainingQuestions)[0] ?? null;
 
   const today = todayUtc();
-  const canAnswerToday =
-    !user?.freeTrainingCompletedAt &&
-    progress &&
-    progress.questionsAnswered < FREE_TRAINING_TOTAL_QUESTIONS &&
-    progress.lastAnsweredDate !== today;
-
-  const nextQuestion = freeQuestions.find((q) => !answeredIds.has(q.id));
+  const completed =
+    !!user?.freeTrainingCompletedAt ||
+    (progress?.questionsAnswered ?? 0) >= FREE_TRAINING_TOTAL_QUESTIONS;
+  const canAnswerToday = !!progress && !completed && progress.lastAnsweredDate !== today;
 
   return {
-    completed: !!user?.freeTrainingCompletedAt,
+    completed,
     progress,
-    questions: freeQuestions,
-    answeredIds: [...answeredIds],
+    questions: trainingQuestions,
+    answeredIds: [],
     canAnswerToday,
     nextQuestion,
+    total: FREE_TRAINING_TOTAL_QUESTIONS,
   };
 }

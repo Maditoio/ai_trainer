@@ -129,12 +129,12 @@ export default async function DashboardPage() {
 
       {!user?.freeTrainingCompletedAt && (
         <Card className="border-violet-200 bg-violet-50">
-          <CardTitle className="text-violet-900">Free training</CardTitle>
+          <CardTitle className="text-violet-900">Daily training</CardTitle>
           <CardDescription className="text-violet-800">
-            3 onboarding questions · 1 per day · 1 USDT bonus when done
+            3 training days · 1 live task question per day · 1 USDT per day.
           </CardDescription>
           <Link href="/free-training" className="mt-3 inline-block">
-            <Button className="w-full sm:w-auto">Continue onboarding</Button>
+            <Button className="w-full sm:w-auto">Start daily training</Button>
           </Link>
         </Card>
       )}

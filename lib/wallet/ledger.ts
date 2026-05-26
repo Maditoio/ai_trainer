@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   ledgerEntries,
@@ -14,6 +14,17 @@ export async function getWalletBalance(userId: string): Promise<string> {
     where: eq(wallets.userId, userId),
   });
   return wallet?.balanceUsdt ?? "0";
+}
+
+export async function getRecentWalletLedgerEntries(userId: string, limit = 10) {
+  return db.query.ledgerEntries.findMany({
+    where: and(
+      eq(ledgerEntries.userId, userId),
+      inArray(ledgerEntries.type, ["task_reward", "free_training_bonus"]),
+    ),
+    orderBy: [desc(ledgerEntries.createdAt)],
+    limit,
+  });
 }
 
 export async function ensureWallet(userId: string) {

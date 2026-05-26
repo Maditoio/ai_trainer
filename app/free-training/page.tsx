@@ -9,9 +9,9 @@ export default async function FreeTrainingPage() {
   if (state.completed) {
     return (
       <Card>
-        <CardTitle>Free training complete</CardTitle>
+        <CardTitle>Training complete</CardTitle>
         <CardDescription className="mt-2">
-          You earned your 1 USDT bonus. Explore paid tasks from the dashboard.
+          You completed all 3 daily training sessions.
         </CardDescription>
       </Card>
     );
@@ -20,10 +20,10 @@ export default async function FreeTrainingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Free training</h1>
+        <h1 className="text-2xl font-bold">Daily training</h1>
         <p className="text-foreground/60">
-          Progress: {state.progress?.questionsAnswered ?? 0} / 3 — 1 question per
-          day. Earn 1 USDT for each completed training day.
+          Progress: {state.progress?.questionsAnswered ?? 0} / {state.total} days.
+          Train on live task questions and earn 1 USDT once per day.
         </p>
       </div>
 
@@ -31,14 +31,17 @@ export default async function FreeTrainingPage() {
         <Card>
           <CardTitle>Come back tomorrow</CardTitle>
           <CardDescription className="mt-2">
-            You can answer one free training question per day (UTC).
+            You can earn from one daily training session per day (UTC).
           </CardDescription>
         </Card>
       ) : state.nextQuestion ? (
         <QuestionForm question={state.nextQuestion} mode="free-training" />
       ) : (
         <Card>
-          <CardDescription>All questions answered. Awaiting completion bonus.</CardDescription>
+          <CardTitle>No training question available</CardTitle>
+          <CardDescription className="mt-2">
+            Waiting for active task questions to train on.
+          </CardDescription>
         </Card>
       )}
     </div>
