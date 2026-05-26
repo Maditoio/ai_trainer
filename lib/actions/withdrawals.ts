@@ -25,11 +25,14 @@ export async function createWithdrawalRequest(formData: FormData): Promise<void>
 
   const amountNum = parseFloat(amount);
   const minimumWithdrawal = parseFloat(settings.minimumWithdrawalAmount);
+  const balance = parseFloat(await getWalletBalance(session.user.id));
+  if (balance < minimumWithdrawal) {
+    throw new Error(`Your balance must be at least ${settings.minimumWithdrawalAmount} USDT to withdraw`);
+  }
   if (amountNum < minimumWithdrawal) {
     throw new Error(`Minimum withdrawal is ${settings.minimumWithdrawalAmount} USDT`);
   }
 
-  const balance = parseFloat(await getWalletBalance(session.user.id));
   if (amountNum > balance) {
     throw new Error("Insufficient balance");
   }

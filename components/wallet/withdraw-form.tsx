@@ -22,6 +22,12 @@ export function WithdrawForm({
   const [amount, setAmount] = useState("");
   const [isPending, startTransition] = useTransition();
   const amountNum = Number(amount);
+  const balanceNum = Number(balance);
+  const minimumWithdrawalNum = Number(minimumWithdrawalAmount);
+  const balanceBelowMinimum =
+    Number.isFinite(balanceNum) &&
+    Number.isFinite(minimumWithdrawalNum) &&
+    balanceNum < minimumWithdrawalNum;
   const feePercentNum = Number(feePercent);
   const estimatedFee =
     Number.isFinite(amountNum) && amountNum > 0
@@ -55,6 +61,12 @@ export function WithdrawForm({
         <strong>{minimumWithdrawalAmount} USDT</strong> · Fee:{" "}
         <strong>{feePercent}%</strong>
       </CardDescription>
+      {balanceBelowMinimum && (
+        <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          Your balance must be at least {minimumWithdrawalAmount} USDT before you
+          can request a withdrawal.
+        </p>
+      )}
       <form onSubmit={onSubmit} className="mt-4 space-y-4">
         <div>
           <Label htmlFor="amount">Amount (USDT)</Label>
@@ -86,7 +98,7 @@ export function WithdrawForm({
             className="mt-1 font-mono text-sm"
           />
         </div>
-        <Button type="submit" className="w-full" disabled={isPending}>
+        <Button type="submit" className="w-full" disabled={isPending || balanceBelowMinimum}>
           {isPending ? "Submitting…" : "Request withdrawal"}
         </Button>
         {error && <p className="text-sm text-red-600">{error}</p>}
