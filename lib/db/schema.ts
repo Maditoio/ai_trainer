@@ -107,6 +107,9 @@ export const users = pgTable("users", {
   referredByUserId: uuid("referred_by_user_id").references(
     (): AnyPgColumn => users.id,
   ),
+  phoneCountryCode: text("phone_country_code"),
+  phoneCountryName: text("phone_country_name"),
+  phoneNumber: text("phone_number"),
   freeTrainingCompletedAt: timestamp("free_training_completed_at", {
     withTimezone: true,
   }),
@@ -200,32 +203,23 @@ export const questions = pgTable("questions", {
     .defaultNow(),
 });
 
-export const submissions = pgTable(
-  "submissions",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    questionId: uuid("question_id")
-      .notNull()
-      .references(() => questions.id, { onDelete: "cascade" }),
-    answerJson: jsonb("answer_json").notNull(),
-    status: submissionStatusEnum("status").notNull(),
-    rewardUsdt: numeric("reward_usdt", { precision: 18, scale: 8 })
-      .notNull()
-      .default("0"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (table) => [
-    uniqueIndex("submissions_user_question_idx").on(
-      table.userId,
-      table.questionId,
-    ),
-  ],
-);
+export const submissions = pgTable("submissions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  questionId: uuid("question_id")
+    .notNull()
+    .references(() => questions.id, { onDelete: "cascade" }),
+  answerJson: jsonb("answer_json").notNull(),
+  status: submissionStatusEnum("status").notNull(),
+  rewardUsdt: numeric("reward_usdt", { precision: 18, scale: 8 })
+    .notNull()
+    .default("0"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
 
 export const dailyUsage = pgTable(
   "daily_usage",

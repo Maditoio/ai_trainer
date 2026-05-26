@@ -58,9 +58,10 @@ export default async function TasksPage() {
       )}
       {activeTasks.length === 0 ? (
         <Card>
-          <CardTitle>No active training tasks are live yet</CardTitle>
+          <CardTitle>No task available right now</CardTitle>
           <CardDescription className="mt-1">
-            Waiting for partners to issue tasks before eligible users can train.
+            Waiting for an eligible weekly task recommendation. Tasks you train
+            on can be recommended again next week.
           </CardDescription>
         </Card>
       ) : (

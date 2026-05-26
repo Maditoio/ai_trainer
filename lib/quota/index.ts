@@ -1,8 +1,19 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { dailyUsage, questions, submissions, tiers, users } from "@/lib/db/schema";
 import { PAID_TASK_COOLDOWN_HOURS } from "@/lib/constants";
 import { todayUtc } from "@/lib/utils";
+
+export function startOfWeekUtc() {
+  const now = new Date();
+  const day = now.getUTCDay();
+  const diff = day === 0 ? 6 : day - 1;
+  const start = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
+  start.setUTCDate(start.getUTCDate() - diff);
+  return start;
+}
 
 export async function getUserTier(userId: string) {
   const user = await db.query.users.findFirst({
@@ -125,4 +136,35 @@ export async function hasSubmittedQuestion(
     ),
   });
   return !!existing;
+}
+
+export async function hasSubmittedQuestionThisWeek(
+  userId: string,
+  questionId: string,
+): Promise<boolean> {
+  const existing = await db.query.submissions.findFirst({
+    where: and(
+      eq(submissions.userId, userId),
+      eq(submissions.questionId, questionId),
+      gte(submissions.createdAt, startOfWeekUtc()),
+    ),
+  });
+  return !!existing;
+}
+
+export async function hasSubmittedTaskThisWeek(
+  userId: string,
+  taskId: string,
+): Promise<boolean> {
+  const taskQuestions = await db.query.questions.findMany({
+    where: eq(questions.taskId, taskId),
+  });
+
+  for (const question of taskQuestions) {
+    if (await hasSubmittedQuestionThisWeek(userId, question.id)) {
+      return true;
+    }
+  }
+
+  return false;
 }

@@ -3,8 +3,13 @@ import { notFound, redirect } from "next/navigation";
 import { asc, eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { questions, tasks } from "@/lib/db/schema";
-import { canAnswerTaskToday, hasSubmittedQuestion } from "@/lib/quota";
+import { questions, tasks, tiers } from "@/lib/db/schema";
+import {
+  canAnswerTaskToday,
+  getUserTier,
+  hasSubmittedQuestionThisWeek,
+  hasSubmittedTaskThisWeek,
+} from "@/lib/quota";
 import { QuestionForm } from "@/components/tasks/question-form";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 
@@ -37,15 +42,26 @@ export default async function TaskDetailPage({
 
   const userId = session.user.id;
   const quota = await canAnswerTaskToday(userId);
+  const userTier = await getUserTier(userId);
+  let tierEligible = true;
+  if (task.minTierId && userTier) {
+    const minTier = await db.query.tiers.findFirst({
+      where: eq(tiers.id, task.minTierId),
+    });
+    tierEligible = minTier ? userTier.sortOrder >= minTier.sortOrder : true;
+  }
+  const completedThisWeek = await hasSubmittedTaskThisWeek(userId, taskId);
   let nextQuestion = null;
-  for (const q of taskQuestions) {
-    if (!(await hasSubmittedQuestion(userId, q.id))) {
-      nextQuestion = q;
-      break;
+  if (!completedThisWeek) {
+    for (const q of taskQuestions) {
+      if (!(await hasSubmittedQuestionThisWeek(userId, q.id))) {
+        nextQuestion = q;
+        break;
+      }
     }
   }
 
-  const completed = taskQuestions.length > 0 && !nextQuestion;
+  const completed = taskQuestions.length > 0 && completedThisWeek;
 
   return (
     <div className="space-y-6">
@@ -59,7 +75,20 @@ export default async function TaskDetailPage({
         </p>
       </div>
 
-      {!quota.allowed ? (
+      {!tierEligible ? (
+        <Card>
+          <CardTitle>Task locked for your tier</CardTitle>
+          <CardDescription className="mt-2">
+            Upgrade to an eligible tier before training on this task.
+          </CardDescription>
+          <Link
+            href="/tier"
+            className="mt-3 inline-flex text-sm font-semibold text-indigo-600"
+          >
+            View tiers
+          </Link>
+        </Card>
+      ) : !quota.allowed ? (
         <Card>
           <CardTitle>Training locked for now</CardTitle>
           <CardDescription className="mt-2">
@@ -79,9 +108,10 @@ export default async function TaskDetailPage({
         </Card>
       ) : completed ? (
         <Card>
-          <CardTitle>Task complete</CardTitle>
+          <CardTitle>Task complete for this week</CardTitle>
           <CardDescription className="mt-2">
-            You have answered all questions in this task.
+            You have already trained on this task this week. It can be
+            recommended again next week.
           </CardDescription>
         </Card>
       ) : nextQuestion ? (

@@ -4,13 +4,13 @@ import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { questions, submissions, tasks } from "@/lib/db/schema";
+import { questions, submissions, tasks, tiers } from "@/lib/db/schema";
 import { PAID_TASK_COOLDOWN_HOURS } from "@/lib/constants";
 import { gradeQuestion } from "@/lib/grading";
 import {
   canAnswerTaskToday,
   getUserTier,
-  hasSubmittedQuestion,
+  hasSubmittedTaskThisWeek,
   incrementDailyUsage,
 } from "@/lib/quota";
 import { applyLedgerEntry } from "@/lib/wallet/ledger";
@@ -41,15 +41,14 @@ export async function submitTaskAnswer(
     return { error: "Question not found" };
   }
 
-  if (await hasSubmittedQuestion(userId, questionId)) {
-    return { error: "Already submitted" };
-  }
-
   const task = await db.query.tasks.findFirst({
     where: eq(tasks.id, question.taskId),
   });
   if (!task || task.status !== "active") {
     return { error: "Task is not active" };
+  }
+  if (await hasSubmittedTaskThisWeek(userId, task.id)) {
+    return { error: "You already trained on this task this week" };
   }
 
   const quota = await canAnswerTaskToday(userId);
@@ -59,6 +58,14 @@ export async function submitTaskAnswer(
 
   const tier = await getUserTier(userId);
   if (!tier) return { error: "No tier assigned" };
+  if (task.minTierId) {
+    const minTier = await db.query.tiers.findFirst({
+      where: eq(tiers.id, task.minTierId),
+    });
+    if (minTier && tier.sortOrder < minTier.sortOrder) {
+      return { error: "Your tier is not eligible for this task" };
+    }
+  }
 
   const finalAnswer = typeof answer === "string" ? answer : answer.finalAnswer;
   const answerJson =

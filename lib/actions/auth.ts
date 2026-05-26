@@ -15,9 +15,18 @@ export async function registerAction(formData: FormData): Promise<void> {
   const password = String(formData.get("password") ?? "");
   const name = String(formData.get("name") ?? "") || null;
   const referralCode = String(formData.get("referralCode") ?? "").trim();
+  const phoneCountry = String(formData.get("phoneCountry") ?? "").trim();
+  const phoneNumber = String(formData.get("phoneNumber") ?? "").trim();
+  const [phoneCountryCode, phoneCountryName] = phoneCountry.split("|");
 
   if (!email || password.length < 6) {
     throw new Error("Valid email and password (min 6 chars) required");
+  }
+  if (!referralCode) {
+    throw new Error("A referral ID is required to register");
+  }
+  if (!phoneCountryCode || !phoneCountryName || !phoneNumber) {
+    throw new Error("Phone country and phone number are required");
   }
 
   const existing = await db.query.users.findFirst({
@@ -28,11 +37,12 @@ export async function registerAction(formData: FormData): Promise<void> {
   }
 
   const passwordHash = await hashPassword(password);
-  const referrer = referralCode
-    ? await db.query.users.findFirst({
-        where: eq(users.referralCode, referralCode),
-      })
-    : null;
+  const referrer = await db.query.users.findFirst({
+    where: eq(users.referralCode, referralCode),
+  });
+  if (!referrer) {
+    throw new Error("Enter a valid referral ID");
+  }
 
   const [user] = await db
     .insert(users)
@@ -40,7 +50,10 @@ export async function registerAction(formData: FormData): Promise<void> {
       email,
       passwordHash,
       name,
-      referredByUserId: referrer?.id ?? null,
+      referredByUserId: referrer.id,
+      phoneCountryCode,
+      phoneCountryName,
+      phoneNumber,
       role:
         process.env.ADMIN_EMAIL?.toLowerCase() === email ? "admin" : "user",
     })
