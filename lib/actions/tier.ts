@@ -163,10 +163,7 @@ export async function upsertTier(
     requiredReferralCount: Number.isNaN(requiredReferralCount)
       ? 0
       : requiredReferralCount,
-    requiredReferralTierId:
-      Number.isNaN(requiredReferralCount) || requiredReferralCount <= 0
-        ? null
-        : requiredReferralTierId,
+    requiredReferralTierId,
     isDefault,
   };
 

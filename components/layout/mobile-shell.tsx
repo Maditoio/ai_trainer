@@ -7,6 +7,7 @@ import {
   Layers,
   LogOut,
   Shield,
+  Users,
   Wallet,
 } from "lucide-react";
 
@@ -21,6 +22,7 @@ const userNav = [
 const adminNav = [
   { href: "/admin", label: "Admin", icon: Shield },
   { href: "/admin/tasks", label: "Tasks", icon: Brain },
+  { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/withdrawals", label: "Payouts", icon: Wallet },
 ];
 

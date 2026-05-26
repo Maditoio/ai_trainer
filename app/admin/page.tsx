@@ -7,7 +7,11 @@ const links = [
   { href: "/admin/free-training", title: "Free training", desc: "Onboarding quiz (3 questions)" },
   { href: "/admin/deposits", title: "Deposits", desc: "Legacy manual deposit requests" },
   { href: "/admin/withdrawals", title: "Withdrawals", desc: "Approve user cash-out requests" },
-  { href: "/admin/users", title: "Users", desc: "View users and balances" },
+  {
+    href: "/admin/users",
+    title: "Users",
+    desc: "View users, balances, withdrawal fees, and minimum withdrawal limits",
+  },
 ];
 
 export default function AdminHomePage() {
