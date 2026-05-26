@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Brain, Coins, Sparkles, Wallet } from "lucide-react";
+import { ReferralLinkCopy } from "@/components/referrals/referral-link-copy";
 
 function formatRemaining(ms?: number) {
   if (!ms || ms <= 0) return "";
@@ -144,9 +145,7 @@ export default async function DashboardPage() {
           Share your referral link. Tier upgrades can require referrals who are
           already using specific packages.
         </CardDescription>
-        <p className="mt-3 break-all rounded-xl bg-white p-3 font-mono text-xs text-slate-700">
-          {referralLink}
-        </p>
+        <ReferralLinkCopy referralLink={referralLink} />
         <p className="mt-2 text-sm font-medium text-cyan-900">
           {referralStats.total} referral{referralStats.total === 1 ? "" : "s"} joined
         </p>

@@ -48,8 +48,8 @@ export function DepositForm() {
       <Card>
         <CardTitle>Deposit USDT (Polygon)</CardTitle>
         <CardDescription className="mt-1">
-          We generate a unique address via NOWPayments. Your wallet credits
-          automatically when the payment confirms.
+          Generate a secure Polygon deposit address. Your wallet credits
+          automatically after the payment confirms.
         </CardDescription>
         <form onSubmit={onSubmit} className="mt-4 space-y-4">
           <div>

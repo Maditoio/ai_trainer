@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { submitTaskAnswer } from "@/lib/actions/submissions";
 import type { TaskTrainingPayload } from "@/lib/actions/submissions";
 import { submitFreeTrainingAnswer } from "@/lib/actions/free-training";
@@ -9,6 +10,7 @@ import type { Question } from "@/lib/db/schema";
 import { getQuestionOptions, type McqOption } from "@/lib/grading";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { CheckCircle2 } from "lucide-react";
 
 type Props = {
   question: Question;
@@ -151,8 +153,8 @@ export function QuestionForm({ question, mode }: Props) {
           : "";
       setCompletionMessage(
         result.correct
-          ? `Training completed successfully.${reward ? ` ${reward}.` : ""}`
-          : "Training completed.",
+          ? `Your training task was submitted successfully.${reward ? ` ${reward}.` : ""}`
+          : "Your training feedback was submitted successfully.",
       );
       setAiVerdict(null);
       setCorrectedOptionId("");
@@ -165,11 +167,26 @@ export function QuestionForm({ question, mode }: Props) {
   if (mode === "task" || mode === "free-training") {
     if (completionMessage) {
       return (
-        <Card className="border-emerald-200 bg-emerald-50">
-          <CardTitle className="text-emerald-950">Training completed</CardTitle>
-          <CardDescription className="mt-2 text-emerald-800">
+        <Card className="border-emerald-200 bg-gradient-to-br from-emerald-50 to-cyan-50 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20">
+            <CheckCircle2 className="h-8 w-8" />
+          </div>
+          <CardTitle className="mt-4 text-xl text-emerald-950">
+            Training completed
+          </CardTitle>
+          <CardDescription className="mx-auto mt-2 max-w-xs text-emerald-800">
             {completionMessage}
           </CardDescription>
+          <div className="mt-5 grid gap-2">
+            <Link href="/tasks">
+              <Button className="w-full">View more tasks</Button>
+            </Link>
+            <Link href="/dashboard">
+              <Button type="button" variant="outline" className="w-full bg-white">
+                Go to dashboard
+              </Button>
+            </Link>
+          </div>
         </Card>
       );
     }
