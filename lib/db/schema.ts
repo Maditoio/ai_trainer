@@ -52,6 +52,25 @@ export const withdrawalStatusEnum = pgEnum("withdrawal_status", [
   "completed",
 ]);
 
+export const platformSettings = pgTable("platform_settings", {
+  id: text("id").primaryKey(),
+  withdrawalFeePercent: numeric("withdrawal_fee_percent", {
+    precision: 8,
+    scale: 4,
+  })
+    .notNull()
+    .default("0"),
+  minimumWithdrawalAmount: numeric("minimum_withdrawal_amount", {
+    precision: 18,
+    scale: 8,
+  })
+    .notNull()
+    .default("0"),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export const tiers = pgTable("tiers", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),

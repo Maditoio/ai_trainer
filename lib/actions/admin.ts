@@ -12,12 +12,14 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
   depositRequests,
+  platformSettings,
   questions,
   tasks,
   users,
   wallets,
 } from "@/lib/db/schema";
 import { parseAmount } from "@/lib/utils";
+import { GLOBAL_WITHDRAWAL_SETTINGS_ID } from "@/lib/withdrawals/settings";
 
 async function requireAdmin() {
   const session = await auth();
@@ -171,10 +173,7 @@ export async function getAdminUsers() {
   return result;
 }
 
-export async function updateUserWithdrawalSettings(
-  userId: string,
-  formData: FormData,
-): Promise<void> {
+export async function updateGlobalWithdrawalSettings(formData: FormData): Promise<void> {
   await requireAdmin();
 
   const feePercent = Number(formData.get("withdrawalFeePercent") ?? 0);
@@ -191,14 +190,24 @@ export async function updateUserWithdrawalSettings(
   }
 
   await db
-    .update(users)
-    .set({
+    .insert(platformSettings)
+    .values({
+      id: GLOBAL_WITHDRAWAL_SETTINGS_ID,
       withdrawalFeePercent: feePercent.toFixed(4),
       minimumWithdrawalAmount,
+      updatedAt: new Date(),
     })
-    .where(eq(users.id, userId));
+    .onConflictDoUpdate({
+      target: platformSettings.id,
+      set: {
+        withdrawalFeePercent: feePercent.toFixed(4),
+        minimumWithdrawalAmount,
+        updatedAt: new Date(),
+      },
+    });
 
-  revalidatePath("/admin/users");
+  revalidatePath("/admin/withdrawals");
+  revalidatePath("/wallet/withdraw");
 }
 
 export async function getPendingDeposits() {

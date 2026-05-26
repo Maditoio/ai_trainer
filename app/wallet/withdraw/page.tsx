@@ -1,10 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { getWithdrawalHistory } from "@/lib/actions/withdrawals";
-import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
+import { getGlobalWithdrawalSettings } from "@/lib/withdrawals/settings";
 import { getWalletBalance } from "@/lib/wallet/ledger";
 import { WithdrawForm } from "@/components/wallet/withdraw-form";
 import { Badge } from "@/components/ui/badge";
@@ -16,9 +14,7 @@ export default async function WithdrawPage() {
 
   const balance = await getWalletBalance(session.user.id);
   const withdrawals = await getWithdrawalHistory();
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, session.user.id),
-  });
+  const settings = await getGlobalWithdrawalSettings();
 
   return (
     <div className="space-y-6">
@@ -29,8 +25,8 @@ export default async function WithdrawPage() {
 
       <WithdrawForm
         balance={balance}
-        feePercent={user?.withdrawalFeePercent ?? "0"}
-        minimumWithdrawalAmount={user?.minimumWithdrawalAmount ?? "0"}
+        feePercent={settings.withdrawalFeePercent}
+        minimumWithdrawalAmount={settings.minimumWithdrawalAmount}
       />
 
       <section>

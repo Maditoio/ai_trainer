@@ -46,6 +46,9 @@ async function migrate() {
           AND column_name = 'withdrawal_fee_percent'
       ) AS exists`,
     );
+    const { rows: platformSettingsRows } = await client.query<{
+      regclass: string | null;
+    }>(`SELECT to_regclass('public.platform_settings') AS regclass`);
 
     if (!rows[0]?.regclass) {
       console.log("Applying all migrations from drizzle/*.sql …");
@@ -71,6 +74,11 @@ async function migrate() {
     if (!withdrawalSettingsRows[0]?.exists) {
       console.log("Applying drizzle/0004_user_withdrawal_settings.sql …");
       await applySqlMigrations(client, (f) => f.includes("0004"));
+    }
+
+    if (!platformSettingsRows[0]?.regclass) {
+      console.log("Applying drizzle/0005_global_withdrawal_settings.sql …");
+      await applySqlMigrations(client, (f) => f.includes("0005"));
       return;
     }
 

@@ -4,8 +4,9 @@ import { desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { users, withdrawalRequests } from "@/lib/db/schema";
+import { withdrawalRequests } from "@/lib/db/schema";
 import { parseAmount } from "@/lib/utils";
+import { getGlobalWithdrawalSettings } from "@/lib/withdrawals/settings";
 import { applyLedgerEntry, getWalletBalance } from "@/lib/wallet/ledger";
 
 const POLYGON_ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
@@ -16,19 +17,16 @@ export async function createWithdrawalRequest(formData: FormData): Promise<void>
 
   const amount = parseAmount(String(formData.get("amount") ?? ""));
   const polygonAddress = String(formData.get("polygonAddress") ?? "").trim();
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, session.user.id),
-  });
-  if (!user) throw new Error("User not found");
+  const settings = await getGlobalWithdrawalSettings();
 
   if (!POLYGON_ADDRESS_RE.test(polygonAddress)) {
     throw new Error("Enter a valid Polygon wallet address (0x…)");
   }
 
   const amountNum = parseFloat(amount);
-  const minimumWithdrawal = parseFloat(user.minimumWithdrawalAmount);
+  const minimumWithdrawal = parseFloat(settings.minimumWithdrawalAmount);
   if (amountNum < minimumWithdrawal) {
-    throw new Error(`Minimum withdrawal is ${user.minimumWithdrawalAmount} USDT`);
+    throw new Error(`Minimum withdrawal is ${settings.minimumWithdrawalAmount} USDT`);
   }
 
   const balance = parseFloat(await getWalletBalance(session.user.id));
@@ -39,7 +37,7 @@ export async function createWithdrawalRequest(formData: FormData): Promise<void>
     throw new Error("Amount must be positive");
   }
 
-  const feePercent = Number(user.withdrawalFeePercent);
+  const feePercent = Number(settings.withdrawalFeePercent);
   const feeAmount = parseAmount((amountNum * feePercent) / 100);
   const netAmount = parseAmount(amountNum - parseFloat(feeAmount));
 

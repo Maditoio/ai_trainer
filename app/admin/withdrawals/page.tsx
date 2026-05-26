@@ -2,10 +2,14 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users, withdrawalRequests } from "@/lib/db/schema";
 import { reviewWithdrawal } from "@/lib/actions/withdrawals";
+import { updateGlobalWithdrawalSettings } from "@/lib/actions/admin";
+import { getGlobalWithdrawalSettings } from "@/lib/withdrawals/settings";
 import { Button } from "@/components/ui/button";
-import { Card, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 export default async function AdminWithdrawalsPage() {
+  const settings = await getGlobalWithdrawalSettings();
   const pending = await db.query.withdrawalRequests.findMany({
     where: eq(withdrawalRequests.status, "pending"),
   });
@@ -22,6 +26,40 @@ export default async function AdminWithdrawalsPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Withdrawal requests</h1>
+
+      <Card>
+        <CardTitle>Global withdrawal settings</CardTitle>
+        <CardDescription className="mt-2">
+          These limits apply to every user withdrawal request.
+        </CardDescription>
+        <form action={updateGlobalWithdrawalSettings} className="mt-4 grid gap-3">
+          <label className="text-xs font-semibold text-slate-600">
+            Withdrawal fee %
+            <Input
+              name="withdrawalFeePercent"
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              defaultValue={settings.withdrawalFeePercent}
+              className="mt-1"
+            />
+          </label>
+          <label className="text-xs font-semibold text-slate-600">
+            Minimum withdrawal USDT
+            <Input
+              name="minimumWithdrawalAmount"
+              type="number"
+              min="0"
+              step="0.01"
+              defaultValue={settings.minimumWithdrawalAmount}
+              className="mt-1"
+            />
+          </label>
+          <Button type="submit">Save global settings</Button>
+        </form>
+      </Card>
+
       {enriched.length === 0 ? (
         <p className="text-[var(--muted)]">No pending withdrawals.</p>
       ) : (

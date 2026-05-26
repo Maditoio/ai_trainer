@@ -6,12 +6,12 @@ const links = [
   { href: "/admin/tasks", title: "Tasks", desc: "Create tasks, add questions, go live" },
   { href: "/admin/free-training", title: "Free training", desc: "Onboarding quiz (3 questions)" },
   { href: "/admin/deposits", title: "Deposits", desc: "Legacy manual deposit requests" },
-  { href: "/admin/withdrawals", title: "Withdrawals", desc: "Approve user cash-out requests" },
   {
-    href: "/admin/users",
-    title: "Users",
-    desc: "View users, balances, withdrawal fees, and minimum withdrawal limits",
+    href: "/admin/withdrawals",
+    title: "Withdrawals",
+    desc: "Set global withdrawal fee, minimum amount, and approve cash-outs",
   },
+  { href: "/admin/users", title: "Users", desc: "View users and balances" },
 ];
 
 export default function AdminHomePage() {
