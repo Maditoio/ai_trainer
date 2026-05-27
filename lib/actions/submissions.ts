@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { questions, submissions, tasks, tiers } from "@/lib/db/schema";
 import { PAID_TASK_COOLDOWN_HOURS } from "@/lib/constants";
 import { gradeQuestion } from "@/lib/grading";
+import { parseAmount } from "@/lib/utils";
 import {
   canAnswerTaskToday,
   getUserTier,
@@ -14,6 +15,7 @@ import {
   incrementDailyUsage,
 } from "@/lib/quota";
 import { applyLedgerEntry } from "@/lib/wallet/ledger";
+import { getGlobalWithdrawalSettings } from "@/lib/withdrawals/settings";
 
 export type TaskTrainingPayload = {
   aiSuggestedAnswer: string;
@@ -83,7 +85,11 @@ export async function submitTaskAnswer(
         };
 
   const isCorrect = gradeQuestion(question, finalAnswer);
-  const rewardUsdt = isCorrect ? tier.usdtPerQuestion : "0";
+  const settings = await getGlobalWithdrawalSettings();
+  const wrongRewardPercent = Number(settings.wrongAnswerRewardPercent);
+  const rewardUsdt = isCorrect
+    ? tier.usdtPerQuestion
+    : parseAmount((parseFloat(tier.usdtPerQuestion) * wrongRewardPercent) / 100);
 
   await db.insert(submissions).values({
     userId,
@@ -93,12 +99,19 @@ export async function submitTaskAnswer(
     rewardUsdt,
   });
 
-  if (isCorrect) {
+  if (parseFloat(rewardUsdt) > 0) {
     await applyLedgerEntry({
       userId,
       type: "task_reward",
       amount: rewardUsdt,
-      metadata: { questionId, taskId: task.id },
+      metadata: {
+        questionId,
+        taskId: task.id,
+        answerLeansWrong: !isCorrect,
+        ...(isCorrect
+          ? {}
+          : { wrongRewardPercent: settings.wrongAnswerRewardPercent }),
+      },
     });
   }
   await incrementDailyUsage(userId);
@@ -116,6 +129,7 @@ export async function submitTaskAnswer(
     success: true,
     correct: isCorrect,
     reward: rewardUsdt,
+    wrongSideFeedback: !isCorrect,
     tier: {
       name: tier.name,
       rewardUsdt: tier.usdtPerQuestion,

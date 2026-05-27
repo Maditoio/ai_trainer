@@ -4,6 +4,7 @@ import { users, withdrawalRequests } from "@/lib/db/schema";
 import { reviewWithdrawal } from "@/lib/actions/withdrawals";
 import { updateGlobalWithdrawalSettings } from "@/lib/actions/admin";
 import { getGlobalWithdrawalSettings } from "@/lib/withdrawals/settings";
+import { formatUsdt } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -41,7 +42,7 @@ export default async function AdminWithdrawalsPage() {
               min="0"
               max="100"
               step="0.01"
-              defaultValue={settings.withdrawalFeePercent}
+              defaultValue={formatUsdt(settings.withdrawalFeePercent)}
               className="mt-1"
             />
           </label>
@@ -52,7 +53,19 @@ export default async function AdminWithdrawalsPage() {
               type="number"
               min="0"
               step="0.01"
-              defaultValue={settings.minimumWithdrawalAmount}
+              defaultValue={formatUsdt(settings.minimumWithdrawalAmount)}
+              className="mt-1"
+            />
+          </label>
+          <label className="text-xs font-semibold text-slate-600">
+            Wrong-answer reward %
+            <Input
+              name="wrongAnswerRewardPercent"
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              defaultValue={formatUsdt(settings.wrongAnswerRewardPercent)}
               className="mt-1"
             />
           </label>
@@ -68,11 +81,11 @@ export default async function AdminWithdrawalsPage() {
             <li key={w.id}>
               <Card>
                 <CardTitle className="text-base">
-                  {w.amount} USDT — {w.email}
+                  {formatUsdt(w.amount)} USDT — {w.email}
                 </CardTitle>
                 <p className="mt-1 text-sm text-slate-700">
-                  Fee: {w.feeAmount} USDT ({w.feePercent}%) · Send:{" "}
-                  <strong>{w.netAmount} USDT</strong>
+                  Fee: {formatUsdt(w.feeAmount)} USDT ({formatUsdt(w.feePercent)}%) · Send:{" "}
+                  <strong>{formatUsdt(w.netAmount)} USDT</strong>
                 </p>
                 <p className="mt-1 break-all font-mono text-xs text-[var(--muted)]">
                   {w.polygonAddress}

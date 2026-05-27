@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createWithdrawalRequest } from "@/lib/actions/withdrawals";
+import { formatUsdt } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -57,13 +58,13 @@ export function WithdrawForm({
     <Card>
       <CardTitle>Withdraw USDT</CardTitle>
       <CardDescription className="mt-1">
-        Balance: <strong>{balance} USDT</strong> · Minimum:{" "}
-        <strong>{minimumWithdrawalAmount} USDT</strong> · Fee:{" "}
+        Balance: <strong>{formatUsdt(balance)} USDT</strong> · Minimum:{" "}
+        <strong>{formatUsdt(minimumWithdrawalAmount)} USDT</strong> · Fee:{" "}
         <strong>{feePercent}%</strong>
       </CardDescription>
       {balanceBelowMinimum && (
         <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          Your balance must be at least {minimumWithdrawalAmount} USDT before you
+          Your balance must be at least {formatUsdt(minimumWithdrawalAmount)} USDT before you
           can request a withdrawal.
         </p>
       )}
@@ -83,8 +84,8 @@ export function WithdrawForm({
           />
           {amount && (
             <p className="mt-1 text-xs text-[var(--muted)]">
-              Fee: {estimatedFee.toFixed(2)} USDT · You receive:{" "}
-              {estimatedPayout.toFixed(2)} USDT
+              Fee: {formatUsdt(estimatedFee)} USDT · You receive:{" "}
+              {formatUsdt(estimatedPayout)} USDT
             </p>
           )}
         </div>

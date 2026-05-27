@@ -2,6 +2,7 @@ import { asc } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { tiers } from "@/lib/db/schema";
 import { deleteTier, upsertTier } from "@/lib/actions/tier";
+import { formatUsdt } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -98,7 +99,7 @@ export default async function AdminTiersPage() {
                   <Label>USDT / question</Label>
                   <Input
                     name="usdtPerQuestion"
-                    defaultValue={tier.usdtPerQuestion}
+                    defaultValue={formatUsdt(tier.usdtPerQuestion)}
                     required
                   />
                 </div>
@@ -106,7 +107,7 @@ export default async function AdminTiersPage() {
                   <Label>Upgrade price</Label>
                   <Input
                     name="upgradePriceUsdt"
-                    defaultValue={tier.upgradePriceUsdt}
+                    defaultValue={formatUsdt(tier.upgradePriceUsdt)}
                     required
                   />
                 </div>

@@ -10,6 +10,7 @@ import {
   hasSubmittedQuestionThisWeek,
   hasSubmittedTaskThisWeek,
 } from "@/lib/quota";
+import { formatUsdt } from "@/lib/utils";
 import { QuestionForm } from "@/components/tasks/question-form";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 
@@ -70,7 +71,7 @@ export default async function TaskDetailPage({
         <p className="text-foreground/60">{task.description}</p>
         <p className="mt-2 text-sm text-[var(--muted)]">
           {quota.tierName
-            ? `${quota.tierName}: ${quota.rewardUsdt} USDT per correct answer · ${quota.used}/${quota.limit} used today`
+            ? `${quota.tierName}: ${formatUsdt(quota.rewardUsdt ?? "0")} USDT per correct answer · ${quota.used}/${quota.limit} used today`
             : "No tier yet: upgrade to unlock paid training tasks"}
         </p>
       </div>

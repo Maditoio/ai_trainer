@@ -57,11 +57,7 @@ export async function upgradeTier(tierId: string): Promise<void> {
     throw new Error("Already on this tier");
   }
 
-  if (
-    currentTier &&
-    targetTier.sortOrder <= currentTier.sortOrder &&
-    parseFloat(targetTier.upgradePriceUsdt) > 0
-  ) {
+  if (currentTier && targetTier.sortOrder <= currentTier.sortOrder) {
     throw new Error("Can only upgrade to a higher tier");
   }
 

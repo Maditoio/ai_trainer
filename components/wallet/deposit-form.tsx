@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { createCryptoDeposit } from "@/lib/actions/crypto";
+import { formatUsdt } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -78,9 +79,9 @@ export function DepositForm() {
             <CardTitle className="text-indigo-900">Send USDT to this address</CardTitle>
           </div>
           <CardDescription className="mt-2">
-            Network: Polygon · Expected ~{result.priceAmount} USD in USDT
+            Network: Polygon · Expected ~{formatUsdt(result.priceAmount)} USD in USDT
             {result.payAmount != null && (
-              <> · Pay {result.payAmount} {result.payCurrency}</>
+              <> · Pay {formatUsdt(result.payAmount)} {result.payCurrency}</>
             )}
           </CardDescription>
           <p className="mt-3 break-all rounded-xl bg-white p-3 font-mono text-sm text-slate-800">

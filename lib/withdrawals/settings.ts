@@ -12,5 +12,6 @@ export async function getGlobalWithdrawalSettings() {
   return {
     withdrawalFeePercent: settings?.withdrawalFeePercent ?? "0",
     minimumWithdrawalAmount: settings?.minimumWithdrawalAmount ?? "0",
+    wrongAnswerRewardPercent: settings?.wrongAnswerRewardPercent ?? "50",
   };
 }

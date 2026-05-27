@@ -2,11 +2,13 @@ import { getTiersForUpgrade, upgradeTier } from "@/lib/actions/tier";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { formatUsdt } from "@/lib/utils";
 
 export default async function TierPage() {
   const data = await getTiersForUpgrade();
   if (!data) return null;
   const hasTier = !!data.currentTier;
+  const currentSortOrder = data.currentTier?.sortOrder ?? -Infinity;
 
   return (
     <div className="space-y-6">
@@ -16,7 +18,7 @@ export default async function TierPage() {
           Choose your training tier
         </h1>
         <p className="mt-1 text-sm text-[var(--muted)]">
-          Balance: {data.balance} USDT · Current:{" "}
+          Balance: {formatUsdt(data.balance)} USDT · Current:{" "}
           {data.currentTier?.name ?? "No tier yet"}
         </p>
       </div>
@@ -36,11 +38,12 @@ export default async function TierPage() {
           const isCurrent = data.currentTier?.id === tier.id;
           const price = parseFloat(tier.upgradePriceUsdt);
           const canAfford = parseFloat(data.balance) >= price;
+          const isHigherTier = !hasTier || tier.sortOrder > currentSortOrder;
           const referralEligibility = data.referralEligibility.find(
             (item) => item.tierId === tier.id,
           );
           const hasReferrals = referralEligibility?.eligible ?? true;
-          const canUpgrade = (price === 0 || canAfford) && hasReferrals;
+          const canUpgrade = isHigherTier && (price === 0 || canAfford) && hasReferrals;
 
           return (
             <li key={tier.id}>
@@ -53,11 +56,11 @@ export default async function TierPage() {
                       {tier.dailyQuestionLimit === 1 ? "" : "s"} per day
                     </CardDescription>
                   </div>
-                  <Badge>{isCurrent ? "Current" : `${tier.upgradePriceUsdt} USDT`}</Badge>
+                  <Badge>{isCurrent ? "Current" : `${formatUsdt(tier.upgradePriceUsdt)} USDT`}</Badge>
                 </div>
                 <CardDescription className="mt-2 space-y-1">
-                  <p>{tier.usdtPerQuestion} USDT per correct answer</p>
-                  <p>Upgrade: {tier.upgradePriceUsdt} USDT</p>
+                  <p>{formatUsdt(tier.usdtPerQuestion)} USDT per correct answer</p>
+                  <p>Upgrade: {formatUsdt(tier.upgradePriceUsdt)} USDT</p>
                   {tier.requiredReferralCount > 0 && (
                     <p>
                       Referrals: {referralEligibility?.qualifiedCount ?? 0}/
@@ -85,7 +88,9 @@ export default async function TierPage() {
                       className="w-full"
                       disabled={!canUpgrade}
                     >
-                      {!hasReferrals
+                      {!isHigherTier
+                        ? "Higher tier only"
+                        : !hasReferrals
                         ? "Need referrals"
                         : !canAfford
                           ? "Insufficient balance"

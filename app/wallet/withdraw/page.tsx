@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { getWithdrawalHistory } from "@/lib/actions/withdrawals";
 import { getGlobalWithdrawalSettings } from "@/lib/withdrawals/settings";
 import { getWalletBalance } from "@/lib/wallet/ledger";
+import { formatUsdt } from "@/lib/utils";
 import { WithdrawForm } from "@/components/wallet/withdraw-form";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -36,9 +37,9 @@ export default async function WithdrawPage() {
             <li key={w.id}>
               <Card className="flex justify-between gap-2">
                 <div>
-                  <p className="font-medium">{w.amount} USDT requested</p>
+                  <p className="font-medium">{formatUsdt(w.amount)} USDT requested</p>
                   <p className="text-xs text-[var(--muted)]">
-                    Fee {w.feeAmount} USDT · payout {w.netAmount} USDT
+                    Fee {formatUsdt(w.feeAmount)} USDT · payout {formatUsdt(w.netAmount)} USDT
                   </p>
                   <p className="break-all font-mono text-xs text-[var(--muted)]">
                     {w.polygonAddress}

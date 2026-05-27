@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { tasks } from "@/lib/db/schema";
 import { canAnswerTaskToday } from "@/lib/quota";
 import { getWeeklyRandomTaskSuggestions } from "@/lib/tasks/suggestions";
+import { formatUsdt } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -36,7 +37,7 @@ export default async function TasksPage() {
         {quota && (
           <p className="text-sm text-[var(--muted)]">
             {hasPaidTier
-              ? `${quota.tierName}: ${quota.rewardUsdt} USDT per question · ${quota.used}/${quota.limit} used today`
+              ? `${quota.tierName}: ${formatUsdt(quota.rewardUsdt ?? "0")} USDT per question · ${quota.used}/${quota.limit} used today`
               : "No tier yet: upgrade to unlock paid training tasks"}
             {quota.cooldownRemainingMs
               ? ` · next task in ${formatRemaining(quota.cooldownRemainingMs)}`
@@ -78,7 +79,7 @@ export default async function TasksPage() {
                     </p>
                   )}
                   <Badge className="mt-2">
-                    {quota?.allowed ? `+${quota.rewardUsdt} USDT` : "Locked"}
+                    {quota?.allowed ? `+${formatUsdt(quota.rewardUsdt ?? "0")} USDT` : "Locked"}
                   </Badge>
                 </div>
                 <Link href={`/tasks/${task.id}`}>

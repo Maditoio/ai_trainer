@@ -69,6 +69,17 @@ async function migrate() {
           AND indexname = 'submissions_user_question_idx'
       ) AS exists`,
     );
+    const { rows: trainingWrongRewardRows } = await client.query<{
+      exists: boolean;
+    }>(
+      `SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'platform_settings'
+          AND column_name = 'wrong_answer_reward_percent'
+      ) AS exists`,
+    );
 
     if (!rows[0]?.regclass) {
       console.log("Applying all migrations from drizzle/*.sql …");
@@ -104,6 +115,11 @@ async function migrate() {
     if (!phoneRows[0]?.exists || submissionUniqueIndexRows[0]?.exists) {
       console.log("Applying drizzle/0006_weekly_paid_task_repeats.sql …");
       await applySqlMigrations(client, (f) => f.includes("0006"));
+    }
+
+    if (!trainingWrongRewardRows[0]?.exists) {
+      console.log("Applying drizzle/0007_free_training_wrong_reward.sql …");
+      await applySqlMigrations(client, (f) => f.includes("0007"));
       return;
     }
 

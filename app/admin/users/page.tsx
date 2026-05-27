@@ -1,4 +1,5 @@
 import { getAdminUsers } from "@/lib/actions/admin";
+import { formatUsdt } from "@/lib/utils";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 
 export default async function AdminUsersPage() {
@@ -18,7 +19,7 @@ export default async function AdminUsersPage() {
           <Card key={u.id}>
             <CardTitle className="break-all text-base">{u.email}</CardTitle>
             <CardDescription className="mt-1">
-              {u.role} · Balance {u.balance} USDT
+              {u.role} · Balance {formatUsdt(u.balance)} USDT
             </CardDescription>
           </Card>
         ))}

@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { depositRequests, users } from "@/lib/db/schema";
 import { reviewDepositRequest } from "@/lib/actions/wallet";
+import { formatUsdt } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 
@@ -30,7 +31,7 @@ export default async function AdminDepositsPage() {
             <li key={d.id}>
               <Card>
                 <CardTitle className="text-base">
-                  {d.amount} USDT — {d.email}
+                  {formatUsdt(d.amount)} USDT — {d.email}
                 </CardTitle>
                 <p className="text-sm text-foreground/60">{d.referenceNote}</p>
                 <div className="mt-4 flex gap-2">

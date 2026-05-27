@@ -15,6 +15,15 @@ export function parseAmount(value: string | number): string {
   return num.toFixed(8);
 }
 
+export function formatUsdt(value: string | number): string {
+  const num = typeof value === "number" ? value : parseFloat(value);
+  if (Number.isNaN(num)) return "0";
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 8,
+  }).format(num);
+}
+
 export function compareAnswers(
   correct: string | null,
   submitted: string,

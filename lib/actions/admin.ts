@@ -180,6 +180,9 @@ export async function updateGlobalWithdrawalSettings(formData: FormData): Promis
   const minimumWithdrawalAmount = parseAmount(
     String(formData.get("minimumWithdrawalAmount") ?? "0"),
   );
+  const wrongAnswerRewardPercent = Number(
+    formData.get("wrongAnswerRewardPercent") ?? 50,
+  );
 
   if (Number.isNaN(feePercent) || feePercent < 0 || feePercent > 100) {
     throw new Error("Withdrawal fee must be between 0 and 100 percent");
@@ -188,6 +191,13 @@ export async function updateGlobalWithdrawalSettings(formData: FormData): Promis
   if (parseFloat(minimumWithdrawalAmount) < 0) {
     throw new Error("Minimum withdrawal cannot be negative");
   }
+  if (
+    Number.isNaN(wrongAnswerRewardPercent) ||
+    wrongAnswerRewardPercent < 0 ||
+    wrongAnswerRewardPercent > 100
+  ) {
+    throw new Error("Wrong-answer training reward must be between 0 and 100 percent");
+  }
 
   await db
     .insert(platformSettings)
@@ -195,6 +205,7 @@ export async function updateGlobalWithdrawalSettings(formData: FormData): Promis
       id: GLOBAL_WITHDRAWAL_SETTINGS_ID,
       withdrawalFeePercent: feePercent.toFixed(4),
       minimumWithdrawalAmount,
+      wrongAnswerRewardPercent: wrongAnswerRewardPercent.toFixed(4),
       updatedAt: new Date(),
     })
     .onConflictDoUpdate({
@@ -202,6 +213,7 @@ export async function updateGlobalWithdrawalSettings(formData: FormData): Promis
       set: {
         withdrawalFeePercent: feePercent.toFixed(4),
         minimumWithdrawalAmount,
+        wrongAnswerRewardPercent: wrongAnswerRewardPercent.toFixed(4),
         updatedAt: new Date(),
       },
     });

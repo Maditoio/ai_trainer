@@ -8,6 +8,7 @@ import type { TaskTrainingPayload } from "@/lib/actions/submissions";
 import { submitFreeTrainingAnswer } from "@/lib/actions/free-training";
 import type { Question } from "@/lib/db/schema";
 import { getQuestionOptions, type McqOption } from "@/lib/grading";
+import { formatUsdt } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { CheckCircle2 } from "lucide-react";
@@ -80,7 +81,9 @@ export function QuestionForm({ question, mode }: Props) {
 
       if (result.correct) {
         const reward =
-          "reward" in result && result.reward ? ` You earned ${result.reward} USDT.` : "";
+          "reward" in result && result.reward
+            ? ` You earned ${formatUsdt(result.reward)} USDT.`
+            : "";
         const next =
           "nextAvailableAt" in result && result.nextAvailableAt
             ? ` Next training unlocks at ${new Date(
@@ -99,7 +102,15 @@ export function QuestionForm({ question, mode }: Props) {
                 result.nextAvailableAt,
               ).toLocaleString()}.`
             : "";
-        setMessage(`Incorrect. No reward for this answer.${next}`);
+        const reward =
+          "reward" in result && result.reward && parseFloat(result.reward) > 0
+            ? ` You earned ${formatUsdt(result.reward)} USDT.`
+            : " No reward for this answer.";
+        const wrongSideFeedback =
+          "wrongSideFeedback" in result && result.wrongSideFeedback
+            ? " Your answer leans more to the wrong side of the overall answers being submitted."
+            : "";
+        setMessage(`Incorrect.${reward}${wrongSideFeedback}${next}`);
       }
       setAnswer("");
     } finally {
@@ -148,14 +159,18 @@ export function QuestionForm({ question, mode }: Props) {
       }
 
       const reward = "reward" in result && result.reward
-        ? `Reward: ${result.reward} USDT`
+        ? `Reward: ${formatUsdt(result.reward)} USDT`
         : "";
+      const wrongSideFeedback =
+        "wrongSideFeedback" in result && result.wrongSideFeedback
+          ? " Your answer leans more to the wrong side of the overall answers being submitted."
+          : "";
       setCompletionMessage(
         mode === "free-training"
-          ? `Daily training completed successfully.${reward ? ` ${reward}.` : ""}`
+          ? `Daily training completed successfully.${reward ? ` ${reward}.` : ""}${wrongSideFeedback}`
           : result.correct
             ? `Your training task was submitted successfully.${reward ? ` ${reward}.` : ""}`
-            : "Your training feedback was submitted successfully.",
+            : `Your training feedback was submitted successfully.${reward ? ` ${reward}.` : ""}${wrongSideFeedback}`,
       );
       setAiVerdict(null);
       setCorrectedOptionId("");

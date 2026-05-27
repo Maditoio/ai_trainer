@@ -66,6 +66,12 @@ export const platformSettings = pgTable("platform_settings", {
   })
     .notNull()
     .default("0"),
+  wrongAnswerRewardPercent: numeric("wrong_answer_reward_percent", {
+    precision: 8,
+    scale: 4,
+  })
+    .notNull()
+    .default("50"),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

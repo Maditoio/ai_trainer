@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCryptoDepositHistory } from "@/lib/actions/crypto";
+import { formatUsdt } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
@@ -19,7 +20,7 @@ export default async function DepositsHistoryPage() {
             <Card>
               <div className="flex justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium">{d.priceAmount} USDT</p>
+                  <p className="font-medium">{formatUsdt(d.priceAmount)} USDT</p>
                   <p className="mt-1 break-all font-mono text-xs text-[var(--muted)]">
                     {d.payAddress}
                   </p>

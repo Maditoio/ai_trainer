@@ -5,6 +5,7 @@ import { getWithdrawalHistory } from "@/lib/actions/withdrawals";
 import { getRecentWalletLedgerEntries, getWalletBalance } from "@/lib/wallet/ledger";
 import { auth } from "@/lib/auth";
 import { getUserTier } from "@/lib/quota";
+import { formatUsdt } from "@/lib/utils";
 import { DepositForm } from "@/components/wallet/deposit-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,7 +31,7 @@ export default async function WalletPage() {
 
       <Card className="gradient-bg border-0 text-white">
         <CardDescription className="text-indigo-100">Balance</CardDescription>
-        <p className="mt-1 text-4xl font-bold tracking-tight">{balance}</p>
+        <p className="mt-1 text-4xl font-bold tracking-tight">{formatUsdt(balance)}</p>
         <p className="text-sm text-indigo-100">USDT</p>
         <div className="mt-4 flex gap-2">
           <Link href="/wallet/deposits" className="flex-1">
@@ -53,7 +54,7 @@ export default async function WalletPage() {
           Your {tier?.name ?? "current"} package
         </CardTitle>
         <CardDescription className="text-emerald-800">
-          Earn {tier?.usdtPerQuestion ?? "0"} USDT per completed training
+          Earn {formatUsdt(tier?.usdtPerQuestion ?? "0")} USDT per completed training
           question, up to {tier?.dailyQuestionLimit ?? 0} per day. Packages with
           more than one daily question wait 1 hour between answers.
         </CardDescription>
@@ -91,7 +92,7 @@ export default async function WalletPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-semibold text-emerald-600">
-                    +{entry.amount} USDT
+                    +{formatUsdt(entry.amount)} USDT
                   </p>
                   <Badge className="bg-emerald-100 text-emerald-700">Credited</Badge>
                 </div>
@@ -108,7 +109,7 @@ export default async function WalletPage() {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold">{d.priceAmount} USDT</p>
+                  <p className="text-sm font-semibold">{formatUsdt(d.priceAmount)} USDT</p>
                   <Badge
                     className={
                       d.creditedAt
@@ -132,7 +133,7 @@ export default async function WalletPage() {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold">-{w.amount}</p>
+                  <p className="text-sm font-semibold">-{formatUsdt(w.amount)} USDT</p>
                   <Badge>{w.status}</Badge>
                 </div>
               </Card>

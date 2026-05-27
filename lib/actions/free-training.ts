@@ -16,8 +16,9 @@ import {
   FREE_TRAINING_TOTAL_QUESTIONS,
 } from "@/lib/constants";
 import { gradeQuestion } from "@/lib/grading";
-import { todayUtc } from "@/lib/utils";
+import { parseAmount, todayUtc } from "@/lib/utils";
 import { applyLedgerEntry } from "@/lib/wallet/ledger";
+import { getGlobalWithdrawalSettings } from "@/lib/withdrawals/settings";
 
 function shuffle<T>(items: T[]) {
   return [...items].sort(() => Math.random() - 0.5);
@@ -65,12 +66,17 @@ export async function submitFreeTrainingAnswer(questionId: string, answer: strin
   }
 
   const isCorrect = gradeQuestion(question, answer);
+  const settings = await getGlobalWithdrawalSettings();
+  const wrongRewardPercent = Number(settings.wrongAnswerRewardPercent);
+  const rewardUsdt = isCorrect
+    ? FREE_TRAINING_BONUS_USDT
+    : parseAmount((parseFloat(FREE_TRAINING_BONUS_USDT) * wrongRewardPercent) / 100);
   await db.insert(submissions).values({
     userId,
     questionId,
     answerJson: { mode: "free_training", answer },
     status: isCorrect ? "correct" : "incorrect",
-    rewardUsdt: FREE_TRAINING_BONUS_USDT,
+    rewardUsdt,
   });
 
   const newCount = progress.questionsAnswered + 1;
@@ -91,12 +97,21 @@ export async function submitFreeTrainingAnswer(questionId: string, answer: strin
       .where(eq(users.id, userId));
   }
 
-  await applyLedgerEntry({
-    userId,
-    type: "free_training_bonus",
-    amount: FREE_TRAINING_BONUS_USDT,
-    metadata: { reason: "free_training_daily", questionId },
-  });
+  if (parseFloat(rewardUsdt) > 0) {
+    await applyLedgerEntry({
+      userId,
+      type: "free_training_bonus",
+      amount: rewardUsdt,
+      metadata: {
+        reason: "free_training_daily",
+        questionId,
+        answerLeansWrong: !isCorrect,
+        ...(isCorrect
+          ? {}
+          : { wrongRewardPercent: settings.wrongAnswerRewardPercent }),
+      },
+    });
+  }
 
   revalidatePath("/free-training");
   revalidatePath("/dashboard");
@@ -106,7 +121,8 @@ export async function submitFreeTrainingAnswer(questionId: string, answer: strin
     correct: isCorrect,
     completed,
     questionsAnswered: newCount,
-    reward: FREE_TRAINING_BONUS_USDT,
+    reward: rewardUsdt,
+    wrongSideFeedback: !isCorrect,
     total: FREE_TRAINING_TOTAL_QUESTIONS,
   };
 }

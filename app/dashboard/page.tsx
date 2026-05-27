@@ -9,6 +9,7 @@ import { buildReferralLink, ensureReferralCode, getReferralStats } from "@/lib/r
 import { getAccuracyStats } from "@/lib/stats/accuracy";
 import { getWeeklyRandomTaskSuggestions } from "@/lib/tasks/suggestions";
 import { getWalletBalance } from "@/lib/wallet/ledger";
+import { formatUsdt } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -57,7 +58,7 @@ export default async function DashboardPage() {
         <div className="flex items-start justify-between">
           <div>
             <p className="text-sm text-indigo-100">Wallet</p>
-            <p className="mt-1 text-3xl font-bold">{balance} USDT</p>
+            <p className="mt-1 text-3xl font-bold">{formatUsdt(balance)} USDT</p>
           </div>
           <Wallet className="h-8 w-8 text-indigo-200" />
         </div>
@@ -75,7 +76,7 @@ export default async function DashboardPage() {
         <Card className="bg-amber-50 border-amber-100">
           <Coins className="h-5 w-5 text-amber-600" />
           <p className="mt-2 text-lg font-bold text-amber-900">
-            {rewardUsdt}
+            {formatUsdt(rewardUsdt)}
           </p>
           <CardDescription className="text-amber-800">
             USDT per question on {tierName}
@@ -131,7 +132,7 @@ export default async function DashboardPage() {
         <Card className="border-violet-200 bg-violet-50">
           <CardTitle className="text-violet-900">Daily training</CardTitle>
           <CardDescription className="text-violet-800">
-            3 training days · 1 live task question per day · 1 USDT per day.
+            3 training days · 1 live task question per day · {formatUsdt(1)} USDT per day.
           </CardDescription>
           <Link href="/free-training" className="mt-3 inline-block">
             <Button className="w-full sm:w-auto">Start daily training</Button>
@@ -187,7 +188,7 @@ export default async function DashboardPage() {
                       )}
                     </div>
                     <Badge>
-                      {canTrainToday ? `+${rewardUsdt}` : "Locked"}
+                      {canTrainToday ? `+${formatUsdt(rewardUsdt)} USDT` : "Locked"}
                     </Badge>
                   </Card>
                 </Link>
