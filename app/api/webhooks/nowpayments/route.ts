@@ -12,9 +12,23 @@ import { parseAmount } from "@/lib/utils";
 
 export async function POST(req: Request) {
   const signature = req.headers.get("x-nowpayments-sig");
-  const body = (await req.json()) as Record<string, unknown>;
+  const rawBody = await req.text();
+  let body: Record<string, unknown>;
 
-  if (!verifyNowpaymentsSignature(body, signature)) {
+  try {
+    body = JSON.parse(rawBody) as Record<string, unknown>;
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  if (!verifyNowpaymentsSignature(body, signature, rawBody)) {
+    console.warn("NOWPayments IPN rejected", {
+      reason: "invalid_signature",
+      hasSignature: !!signature,
+      hasSecret: !!process.env.NOWPAYMENTS_IPN_SECRET,
+      paymentId: body.payment_id,
+      status: body.payment_status,
+    });
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
