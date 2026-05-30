@@ -50,6 +50,7 @@ export const withdrawalStatusEnum = pgEnum("withdrawal_status", [
   "approved",
   "rejected",
   "completed",
+  "processed",
 ]);
 
 export const platformSettings = pgTable("platform_settings", {
@@ -72,6 +73,10 @@ export const platformSettings = pgTable("platform_settings", {
   })
     .notNull()
     .default("50"),
+  trainingAllowedWeekdays: jsonb("training_allowed_weekdays")
+    .$type<number[]>()
+    .notNull()
+    .default([1, 2, 3, 4, 5]),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -116,6 +121,7 @@ export const users = pgTable("users", {
   phoneCountryCode: text("phone_country_code"),
   phoneCountryName: text("phone_country_name"),
   phoneNumber: text("phone_number"),
+  withdrawalPolygonAddress: text("withdrawal_polygon_address"),
   freeTrainingCompletedAt: timestamp("free_training_completed_at", {
     withTimezone: true,
   }),

@@ -8,7 +8,7 @@ import type { TaskTrainingPayload } from "@/lib/actions/submissions";
 import { submitFreeTrainingAnswer } from "@/lib/actions/free-training";
 import type { Question } from "@/lib/db/schema";
 import { getQuestionOptions, type McqOption } from "@/lib/grading";
-import { formatUsdt } from "@/lib/utils";
+import { formatAppDateTime, formatUsdt } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { CheckCircle2 } from "lucide-react";
@@ -86,9 +86,7 @@ export function QuestionForm({ question, mode }: Props) {
             : "";
         const next =
           "nextAvailableAt" in result && result.nextAvailableAt
-            ? ` Next training unlocks at ${new Date(
-                result.nextAvailableAt,
-              ).toLocaleString()}.`
+            ? ` Next training unlocks at ${formatAppDateTime(result.nextAvailableAt)}.`
             : "";
         setMessage(
           mode === "free-training"
@@ -98,9 +96,7 @@ export function QuestionForm({ question, mode }: Props) {
       } else {
         const next =
           "nextAvailableAt" in result && result.nextAvailableAt
-            ? ` Next training unlocks at ${new Date(
-                result.nextAvailableAt,
-              ).toLocaleString()}.`
+            ? ` Next training unlocks at ${formatAppDateTime(result.nextAvailableAt)}.`
             : "";
         const reward =
           "reward" in result && result.reward && parseFloat(result.reward) > 0

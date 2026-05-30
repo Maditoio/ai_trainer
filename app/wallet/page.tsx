@@ -5,7 +5,7 @@ import { getWithdrawalHistory } from "@/lib/actions/withdrawals";
 import { getRecentWalletLedgerEntries, getWalletBalance } from "@/lib/wallet/ledger";
 import { auth } from "@/lib/auth";
 import { getUserTier } from "@/lib/quota";
-import { formatUsdt } from "@/lib/utils";
+import { formatAppDateTime, formatUsdt } from "@/lib/utils";
 import { DepositForm } from "@/components/wallet/deposit-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -87,7 +87,7 @@ export default async function WalletPage() {
                       : "Task reward"}
                   </p>
                   <p className="text-xs text-[var(--muted)]">
-                    {entry.createdAt?.toLocaleString()}
+                    {formatAppDateTime(entry.createdAt)}
                   </p>
                 </div>
                 <div className="text-right">
@@ -105,7 +105,7 @@ export default async function WalletPage() {
                 <div>
                   <p className="text-sm font-medium">Crypto deposit</p>
                   <p className="text-xs text-[var(--muted)]">
-                    {d.createdAt?.toLocaleString()}
+                    {formatAppDateTime(d.createdAt)}
                   </p>
                 </div>
                 <div className="text-right">
@@ -129,7 +129,7 @@ export default async function WalletPage() {
                 <div>
                   <p className="text-sm font-medium">Withdrawal</p>
                   <p className="text-xs text-[var(--muted)]">
-                    {w.createdAt?.toLocaleString()}
+                    {formatAppDateTime(w.createdAt)}
                   </p>
                 </div>
                 <div className="text-right">

@@ -2,7 +2,7 @@ import { getTaskEarningsHistory } from "@/lib/actions/history";
 import { auth } from "@/lib/auth";
 import { getUserTier } from "@/lib/quota";
 import { getAccuracyStats } from "@/lib/stats/accuracy";
-import { formatUsdt } from "@/lib/utils";
+import { formatAppDateTime, formatUsdt } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, XCircle } from "lucide-react";
@@ -61,7 +61,7 @@ export default async function HistoryPage() {
                   {item.questionPrompt}
                 </p>
                 <p className="mt-1 text-xs text-[var(--muted)]">
-                  {item.createdAt?.toLocaleString()}
+                  {formatAppDateTime(item.createdAt)}
                 </p>
               </div>
               <div className="text-right">

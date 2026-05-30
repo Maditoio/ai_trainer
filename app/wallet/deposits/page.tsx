@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getCryptoDepositHistory } from "@/lib/actions/crypto";
-import { formatUsdt } from "@/lib/utils";
+import { formatAppDateTime, formatUsdt } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
@@ -25,7 +25,7 @@ export default async function DepositsHistoryPage() {
                     {d.payAddress}
                   </p>
                   <p className="mt-1 text-xs text-[var(--muted)]">
-                    {d.createdAt?.toLocaleString()}
+                    {formatAppDateTime(d.createdAt)}
                   </p>
                 </div>
                 <Badge

@@ -80,6 +80,39 @@ async function migrate() {
           AND column_name = 'wrong_answer_reward_percent'
       ) AS exists`,
     );
+    const { rows: withdrawalWalletRows } = await client.query<{
+      exists: boolean;
+    }>(
+      `SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'users'
+          AND column_name = 'withdrawal_polygon_address'
+      ) AS exists`,
+    );
+    const { rows: processedWithdrawalRows } = await client.query<{
+      exists: boolean;
+    }>(
+      `SELECT EXISTS (
+        SELECT 1
+        FROM pg_enum e
+        JOIN pg_type t ON t.oid = e.enumtypid
+        WHERE t.typname = 'withdrawal_status'
+          AND e.enumlabel = 'processed'
+      ) AS exists`,
+    );
+    const { rows: trainingWeekdaysRows } = await client.query<{
+      exists: boolean;
+    }>(
+      `SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'platform_settings'
+          AND column_name = 'training_allowed_weekdays'
+      ) AS exists`,
+    );
 
     if (!rows[0]?.regclass) {
       console.log("Applying all migrations from drizzle/*.sql …");
@@ -120,6 +153,21 @@ async function migrate() {
     if (!trainingWrongRewardRows[0]?.exists) {
       console.log("Applying drizzle/0007_free_training_wrong_reward.sql …");
       await applySqlMigrations(client, (f) => f.includes("0007"));
+    }
+
+    if (!withdrawalWalletRows[0]?.exists) {
+      console.log("Applying drizzle/0008_user_withdrawal_wallet.sql …");
+      await applySqlMigrations(client, (f) => f.includes("0008"));
+    }
+
+    if (!processedWithdrawalRows[0]?.exists) {
+      console.log("Applying drizzle/0009_processed_withdrawals.sql …");
+      await applySqlMigrations(client, (f) => f.includes("0009"));
+    }
+
+    if (!trainingWeekdaysRows[0]?.exists) {
+      console.log("Applying drizzle/0010_training_allowed_weekdays.sql …");
+      await applySqlMigrations(client, (f) => f.includes("0010"));
       return;
     }
 

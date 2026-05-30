@@ -23,7 +23,7 @@ const adminNav = [
   { href: "/admin", label: "Admin", icon: Shield },
   { href: "/admin/tasks", label: "Tasks", icon: Brain },
   { href: "/admin/users", label: "Users", icon: Users },
-  { href: "/admin/withdrawals", label: "Payouts", icon: Wallet },
+  { href: "/admin/withdrawal-requests", label: "Payouts", icon: Wallet },
 ];
 
 export async function MobileShell({ children }: { children: React.ReactNode }) {

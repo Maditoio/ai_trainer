@@ -8,8 +8,13 @@ const links = [
   { href: "/admin/deposits", title: "Deposits", desc: "Legacy manual deposit requests" },
   {
     href: "/admin/withdrawals",
-    title: "Withdrawals",
-    desc: "Set global withdrawal fee, minimum amount, and approve cash-outs",
+    title: "Withdrawal settings",
+    desc: "Set global withdrawal fee and minimum amount",
+  },
+  {
+    href: "/admin/withdrawal-requests",
+    title: "Withdrawal requests",
+    desc: "Review and approve user cash-outs",
   },
   { href: "/admin/users", title: "Users", desc: "View users and balances" },
 ];

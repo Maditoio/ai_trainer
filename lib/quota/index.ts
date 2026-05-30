@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { dailyUsage, questions, submissions, tiers, users } from "@/lib/db/schema";
 import { PAID_TASK_COOLDOWN_HOURS } from "@/lib/constants";
 import { todayUtc } from "@/lib/utils";
+import { getTrainingScheduleState } from "@/lib/training/schedule";
 
 export function startOfWeekUtc() {
   const now = new Date();
@@ -81,6 +82,15 @@ export async function canAnswerTaskToday(userId: string): Promise<{
     tierName: tier.name,
     rewardUsdt: tier.usdtPerQuestion,
   };
+  const schedule = await getTrainingScheduleState();
+
+  if (!schedule.allowed) {
+    return {
+      ...base,
+      allowed: false,
+      reason: schedule.reason,
+    };
+  }
 
   if (used >= limit) {
     return {

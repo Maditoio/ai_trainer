@@ -19,7 +19,10 @@ import {
   wallets,
 } from "@/lib/db/schema";
 import { parseAmount } from "@/lib/utils";
-import { GLOBAL_WITHDRAWAL_SETTINGS_ID } from "@/lib/withdrawals/settings";
+import {
+  GLOBAL_WITHDRAWAL_SETTINGS_ID,
+  normalizeTrainingAllowedWeekdays,
+} from "@/lib/withdrawals/settings";
 
 async function requireAdmin() {
   const session = await auth();
@@ -183,6 +186,9 @@ export async function updateGlobalWithdrawalSettings(formData: FormData): Promis
   const wrongAnswerRewardPercent = Number(
     formData.get("wrongAnswerRewardPercent") ?? 50,
   );
+  const trainingAllowedWeekdays = normalizeTrainingAllowedWeekdays(
+    formData.getAll("trainingAllowedWeekdays"),
+  );
 
   if (Number.isNaN(feePercent) || feePercent < 0 || feePercent > 100) {
     throw new Error("Withdrawal fee must be between 0 and 100 percent");
@@ -206,6 +212,7 @@ export async function updateGlobalWithdrawalSettings(formData: FormData): Promis
       withdrawalFeePercent: feePercent.toFixed(4),
       minimumWithdrawalAmount,
       wrongAnswerRewardPercent: wrongAnswerRewardPercent.toFixed(4),
+      trainingAllowedWeekdays,
       updatedAt: new Date(),
     })
     .onConflictDoUpdate({
@@ -214,12 +221,16 @@ export async function updateGlobalWithdrawalSettings(formData: FormData): Promis
         withdrawalFeePercent: feePercent.toFixed(4),
         minimumWithdrawalAmount,
         wrongAnswerRewardPercent: wrongAnswerRewardPercent.toFixed(4),
+        trainingAllowedWeekdays,
         updatedAt: new Date(),
       },
     });
 
   revalidatePath("/admin/withdrawals");
   revalidatePath("/wallet/withdraw");
+  revalidatePath("/dashboard");
+  revalidatePath("/tasks");
+  revalidatePath("/free-training");
 }
 
 export async function getPendingDeposits() {

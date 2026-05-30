@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { users } from "@/lib/db/schema";
 import { getWithdrawalHistory } from "@/lib/actions/withdrawals";
 import { getGlobalWithdrawalSettings } from "@/lib/withdrawals/settings";
 import { getWalletBalance } from "@/lib/wallet/ledger";
-import { formatUsdt } from "@/lib/utils";
+import { formatAppDateTime, formatUsdt } from "@/lib/utils";
 import { WithdrawForm } from "@/components/wallet/withdraw-form";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -16,6 +19,10 @@ export default async function WithdrawPage() {
   const balance = await getWalletBalance(session.user.id);
   const withdrawals = await getWithdrawalHistory();
   const settings = await getGlobalWithdrawalSettings();
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, session.user.id),
+  });
+  const pendingWithdrawal = withdrawals.find((w) => w.status === "pending");
 
   return (
     <div className="space-y-6">
@@ -28,6 +35,8 @@ export default async function WithdrawPage() {
         balance={balance}
         feePercent={settings.withdrawalFeePercent}
         minimumWithdrawalAmount={settings.minimumWithdrawalAmount}
+        savedPolygonAddress={user?.withdrawalPolygonAddress ?? ""}
+        hasPendingWithdrawal={!!pendingWithdrawal}
       />
 
       <section>
@@ -45,7 +54,7 @@ export default async function WithdrawPage() {
                     {w.polygonAddress}
                   </p>
                   <p className="text-xs text-[var(--muted)]">
-                    {w.createdAt?.toLocaleString()}
+                    {formatAppDateTime(w.createdAt)}
                   </p>
                 </div>
                 <Badge>{w.status}</Badge>

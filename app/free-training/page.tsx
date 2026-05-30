@@ -88,11 +88,14 @@ export default async function FreeTrainingPage() {
       {!state.canAnswerToday ? (
         <Card className="border-indigo-100 bg-indigo-50">
           <div className="flex items-center justify-between gap-3">
-            <CardTitle className="text-indigo-950">Come back tomorrow</CardTitle>
+            <CardTitle className="text-indigo-950">
+              {state.reason ? "Training closed today" : "Come back tomorrow"}
+            </CardTitle>
             <Badge className="bg-indigo-100 text-indigo-700">Locked today</Badge>
           </div>
           <CardDescription className="mt-2">
-            You can earn from one daily training session per day (UTC).
+            {state.reason ??
+              "You can earn from one daily training session per day."}
           </CardDescription>
         </Card>
       ) : state.nextQuestion ? (

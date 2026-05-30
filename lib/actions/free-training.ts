@@ -19,6 +19,7 @@ import { gradeQuestion } from "@/lib/grading";
 import { parseAmount, todayUtc } from "@/lib/utils";
 import { applyLedgerEntry } from "@/lib/wallet/ledger";
 import { getGlobalWithdrawalSettings } from "@/lib/withdrawals/settings";
+import { getTrainingScheduleState } from "@/lib/training/schedule";
 
 function shuffle<T>(items: T[]) {
   return [...items].sort(() => Math.random() - 0.5);
@@ -29,6 +30,11 @@ export async function submitFreeTrainingAnswer(questionId: string, answer: strin
   if (!session?.user?.id) return { error: "Unauthorized" };
 
   const userId = session.user.id;
+  const schedule = await getTrainingScheduleState();
+  if (!schedule.allowed) {
+    return { error: schedule.reason };
+  }
+
   const user = await db.query.users.findFirst({
     where: eq(users.id, userId),
   });
@@ -160,7 +166,12 @@ export async function getFreeTrainingState() {
   const completed =
     !!user?.freeTrainingCompletedAt ||
     (progress?.questionsAnswered ?? 0) >= FREE_TRAINING_TOTAL_QUESTIONS;
-  const canAnswerToday = !!progress && !completed && progress.lastAnsweredDate !== today;
+  const schedule = await getTrainingScheduleState();
+  const canAnswerToday =
+    !!progress &&
+    !completed &&
+    schedule.allowed &&
+    progress.lastAnsweredDate !== today;
 
   return {
     completed,
@@ -168,6 +179,7 @@ export async function getFreeTrainingState() {
     questions: trainingQuestions,
     answeredIds: [],
     canAnswerToday,
+    reason: schedule.allowed ? undefined : schedule.reason,
     nextQuestion,
     total: FREE_TRAINING_TOTAL_QUESTIONS,
   };

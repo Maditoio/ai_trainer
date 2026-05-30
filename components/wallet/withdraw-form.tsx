@@ -13,10 +13,14 @@ export function WithdrawForm({
   balance,
   feePercent,
   minimumWithdrawalAmount,
+  savedPolygonAddress,
+  hasPendingWithdrawal,
 }: {
   balance: string;
   feePercent: string;
   minimumWithdrawalAmount: string;
+  savedPolygonAddress: string;
+  hasPendingWithdrawal: boolean;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +42,8 @@ export function WithdrawForm({
     Number.isFinite(amountNum) && amountNum > 0
       ? Math.max(amountNum - estimatedFee, 0)
       : 0;
+  const polygonAddressPattern = "^0x[a-fA-F0-9]{40}$";
+  const canSubmit = !isPending && !balanceBelowMinimum && !hasPendingWithdrawal;
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -45,7 +51,11 @@ export function WithdrawForm({
     const formData = new FormData(e.currentTarget);
     startTransition(async () => {
       try {
-        await createWithdrawalRequest(formData);
+        const result = await createWithdrawalRequest(formData);
+        if (result.error) {
+          setError(result.error);
+          return;
+        }
         router.push("/wallet");
         router.refresh();
       } catch (err) {
@@ -66,6 +76,12 @@ export function WithdrawForm({
         <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">
           Your balance must be at least {formatUsdt(minimumWithdrawalAmount)} USDT before you
           can request a withdrawal.
+        </p>
+      )}
+      {hasPendingWithdrawal && (
+        <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          You already have a pending withdrawal request. Please wait for review
+          before submitting another one.
         </p>
       )}
       <form onSubmit={onSubmit} className="mt-4 space-y-4">
@@ -89,17 +105,38 @@ export function WithdrawForm({
             </p>
           )}
         </div>
-        <div>
-          <Label htmlFor="polygonAddress">Polygon wallet address</Label>
-          <Input
-            id="polygonAddress"
-            name="polygonAddress"
-            placeholder="0x…"
-            required
-            className="mt-1 font-mono text-sm"
-          />
-        </div>
-        <Button type="submit" className="w-full" disabled={isPending || balanceBelowMinimum}>
+        {savedPolygonAddress ? (
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+            <p className="text-xs font-semibold text-slate-600">
+              Saved Polygon wallet
+            </p>
+            <p className="mt-1 break-all font-mono text-sm text-slate-900">
+              {savedPolygonAddress}
+            </p>
+            <input
+              type="hidden"
+              name="polygonAddress"
+              value={savedPolygonAddress}
+            />
+          </div>
+        ) : (
+          <div>
+            <Label htmlFor="polygonAddress">Polygon wallet address</Label>
+            <Input
+              id="polygonAddress"
+              name="polygonAddress"
+              placeholder="0x…"
+              pattern={polygonAddressPattern}
+              title="Enter a valid Polygon wallet address starting with 0x followed by 40 hexadecimal characters."
+              required
+              className="mt-1 font-mono text-sm"
+            />
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              Add this once. We will save it for future withdrawals.
+            </p>
+          </div>
+        )}
+        <Button type="submit" className="w-full" disabled={!canSubmit}>
           {isPending ? "Submitting…" : "Request withdrawal"}
         </Button>
         {error && <p className="text-sm text-red-600">{error}</p>}
